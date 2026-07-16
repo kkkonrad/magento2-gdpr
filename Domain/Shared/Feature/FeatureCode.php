@@ -23,6 +23,26 @@ final class FeatureCode
     public const COOKIE_GEOLOCATION = 'cookie.geolocation';
     public const GOOGLE_CONSENT = 'google_consent';
 
+    public const ALL = [
+        self::MODULE,
+        self::DASHBOARD,
+        self::EXPORT_REQUEST,
+        self::ANONYMIZATION_REQUEST,
+        self::ERASURE_REQUEST,
+        self::RETENTION_OLD_ORDERS,
+        self::RETENTION_ABANDONED_ACCOUNTS,
+        self::CONSENT,
+        self::CONSENT_REGISTRATION,
+        self::CONSENT_NEWSLETTER,
+        self::CONSENT_CONTACT,
+        self::CONSENT_CHECKOUT,
+        self::COOKIE,
+        self::COOKIE_BANNER,
+        self::COOKIE_REJECTED_TRACKING,
+        self::COOKIE_GEOLOCATION,
+        self::GOOGLE_CONSENT,
+    ];
+
     private function __construct()
     {
     }

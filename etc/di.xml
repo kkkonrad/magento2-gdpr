@@ -3,4 +3,16 @@
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
     <preference for="Kkkonrad\Gdpr\Api\FeatureManagerInterface"
                 type="Kkkonrad\Gdpr\Model\Config\FeatureManager"/>
+    <preference for="Kkkonrad\Gdpr\Api\RequestManagementInterface"
+                type="Kkkonrad\Gdpr\Application\DataRights\Request\RequestManagement"/>
+    <preference for="Kkkonrad\Gdpr\Api\JobSchedulerInterface"
+                type="Kkkonrad\Gdpr\Infrastructure\Persistence\JobQueue"/>
+
+    <type name="Magento\Framework\Console\CommandListInterface">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="kkkonrad_gdpr_run_jobs" xsi:type="object">Kkkonrad\Gdpr\Console\Command\RunJobsCommand</item>
+            </argument>
+        </arguments>
+    </type>
 </config>

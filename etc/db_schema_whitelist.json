@@ -1,0 +1,360 @@
+{
+    "kkkonrad_gdpr_request": {
+        "column": {
+            "request_id": true,
+            "public_id": true,
+            "customer_id": true,
+            "subject_key": true,
+            "type": true,
+            "status": true,
+            "store_id": true,
+            "public_reason": true,
+            "admin_reason_encrypted": true,
+            "due_at": true,
+            "created_at": true,
+            "updated_at": true,
+            "completed_at": true
+        },
+        "index": {
+            "KKKONRAD_GDPR_REQUEST_CUSTOMER_ID_TYPE_STATUS": true,
+            "KKKONRAD_GDPR_REQUEST_STATUS_TYPE_CREATED_AT": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "KKKONRAD_GDPR_REQUEST_PUBLIC_ID": true
+        }
+    },
+    "kkkonrad_gdpr_request_event": {
+        "column": {
+            "event_id": true,
+            "request_id": true,
+            "event_type": true,
+            "status_from": true,
+            "status_to": true,
+            "actor_type": true,
+            "actor_id": true,
+            "correlation_id": true,
+            "metadata_json": true,
+            "created_at": true
+        },
+        "index": {
+            "KKKONRAD_GDPR_REQUEST_EVENT_REQUEST_ID_CREATED_AT": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "FK_F2E81BF673E8A0B6509B6F44B1EC58B4": true
+        }
+    },
+    "kkkonrad_gdpr_job": {
+        "column": {
+            "job_id": true,
+            "public_id": true,
+            "idempotency_key": true,
+            "type": true,
+            "feature_code": true,
+            "status": true,
+            "request_id": true,
+            "store_id": true,
+            "payload_json": true,
+            "config_snapshot_json": true,
+            "checkpoint": true,
+            "attempt_count": true,
+            "available_at": true,
+            "locked_at": true,
+            "locked_by": true,
+            "error_code": true,
+            "error_message": true,
+            "created_at": true,
+            "updated_at": true,
+            "finished_at": true
+        },
+        "index": {
+            "KKKONRAD_GDPR_JOB_STATUS_AVAILABLE_AT": true,
+            "KKKONRAD_GDPR_JOB_REQUEST_ID": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "KKKONRAD_GDPR_JOB_PUBLIC_ID": true,
+            "KKKONRAD_GDPR_JOB_IDEMPOTENCY_KEY": true,
+            "KKKONRAD_GDPR_JOB_REQUEST_ID_KKKONRAD_GDPR_REQUEST_REQUEST_ID": true
+        }
+    },
+    "kkkonrad_gdpr_processor_result": {
+        "column": {
+            "result_id": true,
+            "job_id": true,
+            "processor_code": true,
+            "status": true,
+            "processed_count": true,
+            "skipped_count": true,
+            "error_code": true,
+            "created_at": true,
+            "updated_at": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "KKKONRAD_GDPR_PROCESSOR_RESULT_JOB_ID_PROCESSOR_CODE": true,
+            "KKKONRAD_GDPR_PROCESSOR_RESULT_JOB_ID_KKKONRAD_GDPR_JOB_JOB_ID": true
+        }
+    },
+    "kkkonrad_gdpr_export": {
+        "column": {
+            "export_id": true,
+            "request_id": true,
+            "storage_path": true,
+            "schema_version": true,
+            "checksum": true,
+            "file_size": true,
+            "expires_at": true,
+            "downloaded_at": true,
+            "created_at": true
+        },
+        "index": {
+            "KKKONRAD_GDPR_EXPORT_EXPIRES_AT": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "KKKONRAD_GDPR_EXPORT_REQUEST_ID_KKKONRAD_GDPR_REQUEST_REQUEST_ID": true
+        }
+    },
+    "kkkonrad_gdpr_job_run": {
+        "column": {
+            "run_id": true,
+            "job_code": true,
+            "status": true,
+            "found_count": true,
+            "processed_count": true,
+            "skipped_count": true,
+            "failed_count": true,
+            "started_at": true,
+            "finished_at": true
+        },
+        "index": {
+            "KKKONRAD_GDPR_JOB_RUN_JOB_CODE_STARTED_AT": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
+    },
+    "kkkonrad_gdpr_audit_event": {
+        "column": {
+            "audit_id": true,
+            "event_type": true,
+            "entity_type": true,
+            "entity_id": true,
+            "actor_type": true,
+            "actor_id": true,
+            "store_id": true,
+            "correlation_id": true,
+            "metadata_json": true,
+            "created_at": true
+        },
+        "index": {
+            "KKKONRAD_GDPR_AUDIT_EVENT_ENTITY_TYPE_ENTITY_ID_CREATED_AT": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
+    },
+    "kkkonrad_gdpr_consent_definition": {
+        "column": {
+            "definition_id": true,
+            "code": true,
+            "name": true,
+            "location": true,
+            "purpose": true,
+            "is_required": true,
+            "is_active": true,
+            "sort_order": true,
+            "created_at": true,
+            "updated_at": true
+        },
+        "index": {
+            "KKKONRAD_GDPR_CONSENT_DEFINITION_LOCATION_IS_ACTIVE_SORT_ORDER": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "KKKONRAD_GDPR_CONSENT_DEFINITION_CODE": true
+        }
+    },
+    "kkkonrad_gdpr_consent_definition_store": {
+        "column": {
+            "definition_store_id": true,
+            "definition_id": true,
+            "store_id": true,
+            "content": true,
+            "is_active": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "KKKONRAD_GDPR_CONSENT_DEFINITION_STORE_DEFINITION_ID_STORE_ID": true,
+            "FK_7775D46EE773F28D9551226DACB9C7A9": true
+        }
+    },
+    "kkkonrad_gdpr_consent_version": {
+        "column": {
+            "version_id": true,
+            "definition_id": true,
+            "store_id": true,
+            "version": true,
+            "content_snapshot": true,
+            "content_hash": true,
+            "valid_from": true,
+            "valid_to": true
+        },
+        "index": {
+            "KKKONRAD_GDPR_CONSENT_VERSION_DEFINITION_ID_STORE_ID_VALID_TO": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "KKKONRAD_GDPR_CONSENT_VERSION_DEFINITION_ID_STORE_ID_VERSION": true,
+            "FK_9AE42279BAD9688F691BAA1DB1824BC2": true
+        }
+    },
+    "kkkonrad_gdpr_consent_event": {
+        "column": {
+            "event_id": true,
+            "version_id": true,
+            "customer_id": true,
+            "subject_key": true,
+            "decision": true,
+            "source": true,
+            "store_id": true,
+            "correlation_id": true,
+            "occurred_at": true
+        },
+        "index": {
+            "KKKONRAD_GDPR_CONSENT_EVENT_CUSTOMER_ID_OCCURRED_AT": true,
+            "KKKONRAD_GDPR_CONSENT_EVENT_SUBJECT_KEY_OCCURRED_AT": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "FK_7991EEE0C5C1E9F30E003F12C1F28B89": true
+        }
+    },
+    "kkkonrad_gdpr_cookie_group": {
+        "column": {
+            "group_id": true,
+            "code": true,
+            "type": true,
+            "is_required": true,
+            "is_active": true,
+            "priority": true,
+            "created_at": true,
+            "updated_at": true
+        },
+        "index": {
+            "KKKONRAD_GDPR_COOKIE_GROUP_IS_ACTIVE_PRIORITY": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "KKKONRAD_GDPR_COOKIE_GROUP_CODE": true
+        }
+    },
+    "kkkonrad_gdpr_cookie_group_store": {
+        "column": {
+            "group_store_id": true,
+            "group_id": true,
+            "store_id": true,
+            "name": true,
+            "description": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "KKKONRAD_GDPR_COOKIE_GROUP_STORE_GROUP_ID_STORE_ID": true,
+            "FK_55757A595501E68D6791DEC1540A0957": true
+        }
+    },
+    "kkkonrad_gdpr_cookie": {
+        "column": {
+            "cookie_id": true,
+            "group_id": true,
+            "name": true,
+            "code_pattern": true,
+            "storage_type": true,
+            "lifetime": true,
+            "is_active": true,
+            "created_at": true,
+            "updated_at": true
+        },
+        "index": {
+            "KKKONRAD_GDPR_COOKIE_GROUP_ID_IS_ACTIVE": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "KKKONRAD_GDPR_COOKIE_CODE_PATTERN_STORAGE_TYPE": true,
+            "FK_8F543A11DFF31E12F8FD531674F08192": true
+        }
+    },
+    "kkkonrad_gdpr_cookie_store": {
+        "column": {
+            "cookie_store_id": true,
+            "cookie_id": true,
+            "store_id": true,
+            "description": true,
+            "is_active": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "KKKONRAD_GDPR_COOKIE_STORE_COOKIE_ID_STORE_ID": true,
+            "FK_0A8A0A747AFCC99ED278BE47A8A9739D": true
+        }
+    },
+    "kkkonrad_gdpr_cookie_policy_version": {
+        "column": {
+            "policy_version_id": true,
+            "store_id": true,
+            "public_id": true,
+            "version": true,
+            "configuration_hash": true,
+            "published_at": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "KKKONRAD_GDPR_COOKIE_POLICY_VERSION_PUBLIC_ID": true,
+            "KKKONRAD_GDPR_COOKIE_POLICY_VERSION_STORE_ID_VERSION": true
+        }
+    },
+    "kkkonrad_gdpr_cookie_consent_event": {
+        "column": {
+            "event_id": true,
+            "policy_version_id": true,
+            "customer_id": true,
+            "subject_key": true,
+            "choices_json": true,
+            "region": true,
+            "store_id": true,
+            "correlation_id": true,
+            "occurred_at": true
+        },
+        "index": {
+            "KKKONRAD_GDPR_COOKIE_CONSENT_EVENT_SUBJECT_KEY_OCCURRED_AT": true,
+            "KKKONRAD_GDPR_COOKIE_CONSENT_EVENT_CUSTOMER_ID_OCCURRED_AT": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "FK_B9690BD5CAA63A2315EEA848DC7E42C1": true
+        }
+    },
+    "kkkonrad_gdpr_rejected_cookie": {
+        "column": {
+            "rejected_id": true,
+            "store_id": true,
+            "cookie_name": true,
+            "name_hash": true,
+            "domain": true,
+            "domain_hash": true,
+            "is_unknown": true,
+            "occurrence_count": true,
+            "first_seen_at": true,
+            "last_seen_at": true
+        },
+        "index": {
+            "KKKONRAD_GDPR_REJECTED_COOKIE_IS_UNKNOWN_LAST_SEEN_AT": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "KKKONRAD_GDPR_REJECTED_COOKIE_STORE_ID_NAME_HASH_DOMAIN_HASH": true
+        }
+    }
+}

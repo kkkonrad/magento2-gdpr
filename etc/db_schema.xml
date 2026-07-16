@@ -1,0 +1,350 @@
+<?xml version="1.0"?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+
+    <table name="kkkonrad_gdpr_request" resource="default" engine="innodb" comment="GDPR Customer Requests">
+        <column xsi:type="bigint" name="request_id" unsigned="true" nullable="false" identity="true" comment="Request ID"/>
+        <column xsi:type="varchar" name="public_id" length="36" nullable="false" comment="Public UUID"/>
+        <column xsi:type="int" name="customer_id" unsigned="true" nullable="true" comment="Customer ID Without Foreign Key"/>
+        <column xsi:type="varchar" name="subject_key" length="64" nullable="true" comment="Pseudonymous Subject Key"/>
+        <column xsi:type="varchar" name="type" length="32" nullable="false" comment="Request Type"/>
+        <column xsi:type="varchar" name="status" length="32" nullable="false" default="submitted" comment="Request Status"/>
+        <column xsi:type="smallint" name="store_id" unsigned="true" nullable="false" comment="Store ID"/>
+        <column xsi:type="text" name="public_reason" nullable="true" comment="Customer-safe Reason"/>
+        <column xsi:type="text" name="admin_reason_encrypted" nullable="true" comment="Encrypted Administrative Reason"/>
+        <column xsi:type="timestamp" name="due_at" nullable="true" comment="Due At"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP" comment="Updated At"/>
+        <column xsi:type="timestamp" name="completed_at" nullable="true" comment="Completed At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY"><column name="request_id"/></constraint>
+        <constraint xsi:type="unique" referenceId="KKKONRAD_GDPR_REQUEST_PUBLIC_ID"><column name="public_id"/></constraint>
+        <index referenceId="KKKONRAD_GDPR_REQUEST_CUSTOMER_TYPE_STATUS" indexType="btree">
+            <column name="customer_id"/><column name="type"/><column name="status"/>
+        </index>
+        <index referenceId="KKKONRAD_GDPR_REQUEST_STATUS_TYPE_CREATED" indexType="btree">
+            <column name="status"/><column name="type"/><column name="created_at"/>
+        </index>
+    </table>
+
+    <table name="kkkonrad_gdpr_request_event" resource="default" engine="innodb" comment="Append-only GDPR Request Events">
+        <column xsi:type="bigint" name="event_id" unsigned="true" nullable="false" identity="true" comment="Event ID"/>
+        <column xsi:type="bigint" name="request_id" unsigned="true" nullable="false" comment="Request ID"/>
+        <column xsi:type="varchar" name="event_type" length="48" nullable="false" comment="Event Type"/>
+        <column xsi:type="varchar" name="status_from" length="32" nullable="true" comment="Previous Status"/>
+        <column xsi:type="varchar" name="status_to" length="32" nullable="true" comment="New Status"/>
+        <column xsi:type="varchar" name="actor_type" length="16" nullable="false" default="system" comment="Actor Type"/>
+        <column xsi:type="int" name="actor_id" unsigned="true" nullable="true" comment="Actor ID"/>
+        <column xsi:type="varchar" name="correlation_id" length="64" nullable="true" comment="Correlation ID"/>
+        <column xsi:type="text" name="metadata_json" nullable="true" comment="Redacted Metadata JSON"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY"><column name="event_id"/></constraint>
+        <constraint xsi:type="foreign" referenceId="KKKONRAD_GDPR_REQ_EVENT_REQUEST_ID_REQUEST_REQUEST_ID"
+                    table="kkkonrad_gdpr_request_event" column="request_id"
+                    referenceTable="kkkonrad_gdpr_request" referenceColumn="request_id" onDelete="NO ACTION"/>
+        <index referenceId="KKKONRAD_GDPR_REQ_EVENT_REQUEST_CREATED" indexType="btree">
+            <column name="request_id"/><column name="created_at"/>
+        </index>
+    </table>
+
+    <table name="kkkonrad_gdpr_job" resource="default" engine="innodb" comment="GDPR Processing Jobs">
+        <column xsi:type="bigint" name="job_id" unsigned="true" nullable="false" identity="true" comment="Job ID"/>
+        <column xsi:type="varchar" name="public_id" length="36" nullable="false" comment="Public UUID"/>
+        <column xsi:type="varchar" name="idempotency_key" length="128" nullable="false" comment="Idempotency Key"/>
+        <column xsi:type="varchar" name="type" length="48" nullable="false" comment="Job Type"/>
+        <column xsi:type="varchar" name="feature_code" length="64" nullable="false" comment="Owning Feature Code"/>
+        <column xsi:type="varchar" name="status" length="32" nullable="false" default="queued" comment="Job Status"/>
+        <column xsi:type="bigint" name="request_id" unsigned="true" nullable="true" comment="Related Request ID"/>
+        <column xsi:type="smallint" name="store_id" unsigned="true" nullable="false" comment="Store ID"/>
+        <column xsi:type="text" name="payload_json" nullable="true" comment="Minimal Job Payload JSON"/>
+        <column xsi:type="text" name="config_snapshot_json" nullable="true" comment="Configuration Snapshot JSON"/>
+        <column xsi:type="varchar" name="checkpoint" length="128" nullable="true" comment="Processor Checkpoint"/>
+        <column xsi:type="smallint" name="attempt_count" unsigned="true" nullable="false" default="0" comment="Attempt Count"/>
+        <column xsi:type="timestamp" name="available_at" nullable="false" default="CURRENT_TIMESTAMP" comment="Available At"/>
+        <column xsi:type="timestamp" name="locked_at" nullable="true" comment="Locked At"/>
+        <column xsi:type="varchar" name="locked_by" length="64" nullable="true" comment="Worker ID"/>
+        <column xsi:type="varchar" name="error_code" length="64" nullable="true" comment="Safe Error Code"/>
+        <column xsi:type="text" name="error_message" nullable="true" comment="Safe Error Message"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP" comment="Updated At"/>
+        <column xsi:type="timestamp" name="finished_at" nullable="true" comment="Finished At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY"><column name="job_id"/></constraint>
+        <constraint xsi:type="unique" referenceId="KKKONRAD_GDPR_JOB_PUBLIC_ID"><column name="public_id"/></constraint>
+        <constraint xsi:type="unique" referenceId="KKKONRAD_GDPR_JOB_IDEMPOTENCY_KEY"><column name="idempotency_key"/></constraint>
+        <constraint xsi:type="foreign" referenceId="KKKONRAD_GDPR_JOB_REQUEST_ID_REQUEST_REQUEST_ID"
+                    table="kkkonrad_gdpr_job" column="request_id"
+                    referenceTable="kkkonrad_gdpr_request" referenceColumn="request_id" onDelete="SET NULL"/>
+        <index referenceId="KKKONRAD_GDPR_JOB_STATUS_AVAILABLE" indexType="btree">
+            <column name="status"/><column name="available_at"/>
+        </index>
+        <index referenceId="KKKONRAD_GDPR_JOB_REQUEST_ID" indexType="btree"><column name="request_id"/></index>
+    </table>
+
+    <table name="kkkonrad_gdpr_processor_result" resource="default" engine="innodb" comment="GDPR Job Processor Results">
+        <column xsi:type="bigint" name="result_id" unsigned="true" nullable="false" identity="true" comment="Result ID"/>
+        <column xsi:type="bigint" name="job_id" unsigned="true" nullable="false" comment="Job ID"/>
+        <column xsi:type="varchar" name="processor_code" length="96" nullable="false" comment="Processor Code"/>
+        <column xsi:type="varchar" name="status" length="32" nullable="false" comment="Processor Status"/>
+        <column xsi:type="int" name="processed_count" unsigned="true" nullable="false" default="0" comment="Processed Count"/>
+        <column xsi:type="int" name="skipped_count" unsigned="true" nullable="false" default="0" comment="Skipped Count"/>
+        <column xsi:type="varchar" name="error_code" length="64" nullable="true" comment="Safe Error Code"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP" comment="Updated At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY"><column name="result_id"/></constraint>
+        <constraint xsi:type="unique" referenceId="KKKONRAD_GDPR_PROCESSOR_JOB_CODE">
+            <column name="job_id"/><column name="processor_code"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="KKKONRAD_GDPR_PROCESSOR_JOB_ID_JOB_JOB_ID"
+                    table="kkkonrad_gdpr_processor_result" column="job_id"
+                    referenceTable="kkkonrad_gdpr_job" referenceColumn="job_id" onDelete="CASCADE"/>
+    </table>
+
+    <table name="kkkonrad_gdpr_export" resource="default" engine="innodb" comment="GDPR Export Files">
+        <column xsi:type="bigint" name="export_id" unsigned="true" nullable="false" identity="true" comment="Export ID"/>
+        <column xsi:type="bigint" name="request_id" unsigned="true" nullable="false" comment="Request ID"/>
+        <column xsi:type="varchar" name="storage_path" length="512" nullable="false" comment="Private Storage Path"/>
+        <column xsi:type="varchar" name="schema_version" length="32" nullable="false" comment="Export Schema Version"/>
+        <column xsi:type="varchar" name="checksum" length="64" nullable="false" comment="SHA-256 Checksum"/>
+        <column xsi:type="bigint" name="file_size" unsigned="true" nullable="false" default="0" comment="File Size"/>
+        <column xsi:type="timestamp" name="expires_at" nullable="false" comment="Expires At"/>
+        <column xsi:type="timestamp" name="downloaded_at" nullable="true" comment="Last Download At"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY"><column name="export_id"/></constraint>
+        <constraint xsi:type="foreign" referenceId="KKKONRAD_GDPR_EXPORT_REQUEST_ID_REQUEST_REQUEST_ID"
+                    table="kkkonrad_gdpr_export" column="request_id"
+                    referenceTable="kkkonrad_gdpr_request" referenceColumn="request_id" onDelete="NO ACTION"/>
+        <index referenceId="KKKONRAD_GDPR_EXPORT_EXPIRES_AT" indexType="btree"><column name="expires_at"/></index>
+    </table>
+
+    <table name="kkkonrad_gdpr_job_run" resource="default" engine="innodb" comment="GDPR Cron Run Statistics">
+        <column xsi:type="bigint" name="run_id" unsigned="true" nullable="false" identity="true" comment="Run ID"/>
+        <column xsi:type="varchar" name="job_code" length="64" nullable="false" comment="Cron Job Code"/>
+        <column xsi:type="varchar" name="status" length="32" nullable="false" comment="Run Status"/>
+        <column xsi:type="int" name="found_count" unsigned="true" nullable="false" default="0" comment="Found Count"/>
+        <column xsi:type="int" name="processed_count" unsigned="true" nullable="false" default="0" comment="Processed Count"/>
+        <column xsi:type="int" name="skipped_count" unsigned="true" nullable="false" default="0" comment="Skipped Count"/>
+        <column xsi:type="int" name="failed_count" unsigned="true" nullable="false" default="0" comment="Failed Count"/>
+        <column xsi:type="timestamp" name="started_at" nullable="false" default="CURRENT_TIMESTAMP" comment="Started At"/>
+        <column xsi:type="timestamp" name="finished_at" nullable="true" comment="Finished At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY"><column name="run_id"/></constraint>
+        <index referenceId="KKKONRAD_GDPR_JOB_RUN_CODE_STARTED" indexType="btree">
+            <column name="job_code"/><column name="started_at"/>
+        </index>
+    </table>
+
+    <table name="kkkonrad_gdpr_audit_event" resource="default" engine="innodb" comment="Append-only GDPR Audit Events">
+        <column xsi:type="bigint" name="audit_id" unsigned="true" nullable="false" identity="true" comment="Audit ID"/>
+        <column xsi:type="varchar" name="event_type" length="64" nullable="false" comment="Event Type"/>
+        <column xsi:type="varchar" name="entity_type" length="64" nullable="false" comment="Entity Type"/>
+        <column xsi:type="varchar" name="entity_id" length="64" nullable="true" comment="Entity ID"/>
+        <column xsi:type="varchar" name="actor_type" length="16" nullable="false" default="system" comment="Actor Type"/>
+        <column xsi:type="int" name="actor_id" unsigned="true" nullable="true" comment="Actor ID"/>
+        <column xsi:type="smallint" name="store_id" unsigned="true" nullable="true" comment="Store ID"/>
+        <column xsi:type="varchar" name="correlation_id" length="64" nullable="true" comment="Correlation ID"/>
+        <column xsi:type="text" name="metadata_json" nullable="true" comment="Redacted Metadata JSON"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY"><column name="audit_id"/></constraint>
+        <index referenceId="KKKONRAD_GDPR_AUDIT_ENTITY_CREATED" indexType="btree">
+            <column name="entity_type"/><column name="entity_id"/><column name="created_at"/>
+        </index>
+    </table>
+
+    <table name="kkkonrad_gdpr_consent_definition" resource="default" engine="innodb" comment="GDPR Consent Definitions">
+        <column xsi:type="int" name="definition_id" unsigned="true" nullable="false" identity="true" comment="Definition ID"/>
+        <column xsi:type="varchar" name="code" length="64" nullable="false" comment="Definition Code"/>
+        <column xsi:type="varchar" name="name" length="255" nullable="false" comment="Internal Name"/>
+        <column xsi:type="varchar" name="location" length="32" nullable="false" comment="Form Location"/>
+        <column xsi:type="varchar" name="purpose" length="255" nullable="false" comment="Consent Purpose"/>
+        <column xsi:type="boolean" name="is_required" nullable="false" default="false" comment="Is Required"/>
+        <column xsi:type="boolean" name="is_active" nullable="false" default="true" comment="Is Active"/>
+        <column xsi:type="smallint" name="sort_order" unsigned="true" nullable="false" default="0" comment="Sort Order"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP" comment="Updated At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY"><column name="definition_id"/></constraint>
+        <constraint xsi:type="unique" referenceId="KKKONRAD_GDPR_CONSENT_DEFINITION_CODE"><column name="code"/></constraint>
+        <index referenceId="KKKONRAD_GDPR_CONSENT_DEFINITION_LOCATION_ACTIVE" indexType="btree">
+            <column name="location"/><column name="is_active"/><column name="sort_order"/>
+        </index>
+    </table>
+
+    <table name="kkkonrad_gdpr_consent_definition_store" resource="default" engine="innodb" comment="GDPR Consent Definition Store Data">
+        <column xsi:type="int" name="definition_store_id" unsigned="true" nullable="false" identity="true" comment="Definition Store ID"/>
+        <column xsi:type="int" name="definition_id" unsigned="true" nullable="false" comment="Definition ID"/>
+        <column xsi:type="smallint" name="store_id" unsigned="true" nullable="false" comment="Store ID"/>
+        <column xsi:type="text" name="content" nullable="false" comment="Consent Content"/>
+        <column xsi:type="boolean" name="is_active" nullable="false" default="true" comment="Is Active in Store"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY"><column name="definition_store_id"/></constraint>
+        <constraint xsi:type="unique" referenceId="KKKONRAD_GDPR_CONSENT_DEF_STORE_DEF_STORE">
+            <column name="definition_id"/><column name="store_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="KKKONRAD_GDPR_CONSENT_DEF_STORE_DEF_ID_DEF_DEF_ID"
+                    table="kkkonrad_gdpr_consent_definition_store" column="definition_id"
+                    referenceTable="kkkonrad_gdpr_consent_definition" referenceColumn="definition_id" onDelete="CASCADE"/>
+    </table>
+
+    <table name="kkkonrad_gdpr_consent_version" resource="default" engine="innodb" comment="Published GDPR Consent Versions">
+        <column xsi:type="bigint" name="version_id" unsigned="true" nullable="false" identity="true" comment="Version ID"/>
+        <column xsi:type="int" name="definition_id" unsigned="true" nullable="false" comment="Definition ID"/>
+        <column xsi:type="smallint" name="store_id" unsigned="true" nullable="false" comment="Store ID"/>
+        <column xsi:type="int" name="version" unsigned="true" nullable="false" comment="Version Number"/>
+        <column xsi:type="text" name="content_snapshot" nullable="false" comment="Published Content Snapshot"/>
+        <column xsi:type="varchar" name="content_hash" length="64" nullable="false" comment="SHA-256 Content Hash"/>
+        <column xsi:type="timestamp" name="valid_from" nullable="false" default="CURRENT_TIMESTAMP" comment="Valid From"/>
+        <column xsi:type="timestamp" name="valid_to" nullable="true" comment="Valid To"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY"><column name="version_id"/></constraint>
+        <constraint xsi:type="unique" referenceId="KKKONRAD_GDPR_CONSENT_VERSION_DEF_STORE_VERSION">
+            <column name="definition_id"/><column name="store_id"/><column name="version"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="KKKONRAD_GDPR_CONSENT_VERSION_DEF_ID_DEF_DEF_ID"
+                    table="kkkonrad_gdpr_consent_version" column="definition_id"
+                    referenceTable="kkkonrad_gdpr_consent_definition" referenceColumn="definition_id" onDelete="NO ACTION"/>
+        <index referenceId="KKKONRAD_GDPR_CONSENT_VERSION_ACTIVE" indexType="btree">
+            <column name="definition_id"/><column name="store_id"/><column name="valid_to"/>
+        </index>
+    </table>
+
+    <table name="kkkonrad_gdpr_consent_event" resource="default" engine="innodb" comment="Append-only Form Consent Events">
+        <column xsi:type="bigint" name="event_id" unsigned="true" nullable="false" identity="true" comment="Event ID"/>
+        <column xsi:type="bigint" name="version_id" unsigned="true" nullable="false" comment="Consent Version ID"/>
+        <column xsi:type="int" name="customer_id" unsigned="true" nullable="true" comment="Customer ID Without Foreign Key"/>
+        <column xsi:type="varchar" name="subject_key" length="64" nullable="true" comment="Pseudonymous Subject Key"/>
+        <column xsi:type="varchar" name="decision" length="16" nullable="false" comment="Decision"/>
+        <column xsi:type="varchar" name="source" length="32" nullable="false" comment="Decision Source"/>
+        <column xsi:type="smallint" name="store_id" unsigned="true" nullable="false" comment="Store ID"/>
+        <column xsi:type="varchar" name="correlation_id" length="64" nullable="true" comment="Correlation ID"/>
+        <column xsi:type="timestamp" name="occurred_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Occurred At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY"><column name="event_id"/></constraint>
+        <constraint xsi:type="foreign" referenceId="KKKONRAD_GDPR_CONSENT_EVENT_VERSION_ID_VERSION_VERSION_ID"
+                    table="kkkonrad_gdpr_consent_event" column="version_id"
+                    referenceTable="kkkonrad_gdpr_consent_version" referenceColumn="version_id" onDelete="NO ACTION"/>
+        <index referenceId="KKKONRAD_GDPR_CONSENT_EVENT_CUSTOMER_OCCURRED" indexType="btree">
+            <column name="customer_id"/><column name="occurred_at"/>
+        </index>
+        <index referenceId="KKKONRAD_GDPR_CONSENT_EVENT_SUBJECT_OCCURRED" indexType="btree">
+            <column name="subject_key"/><column name="occurred_at"/>
+        </index>
+    </table>
+
+    <table name="kkkonrad_gdpr_cookie_group" resource="default" engine="innodb" comment="GDPR Cookie Groups">
+        <column xsi:type="int" name="group_id" unsigned="true" nullable="false" identity="true" comment="Group ID"/>
+        <column xsi:type="varchar" name="code" length="64" nullable="false" comment="Group Code"/>
+        <column xsi:type="varchar" name="type" length="32" nullable="false" comment="Semantic Group Type"/>
+        <column xsi:type="boolean" name="is_required" nullable="false" default="false" comment="Is Required"/>
+        <column xsi:type="boolean" name="is_active" nullable="false" default="true" comment="Is Active"/>
+        <column xsi:type="smallint" name="priority" unsigned="true" nullable="false" default="0" comment="Priority"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP" comment="Updated At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY"><column name="group_id"/></constraint>
+        <constraint xsi:type="unique" referenceId="KKKONRAD_GDPR_COOKIE_GROUP_CODE"><column name="code"/></constraint>
+        <index referenceId="KKKONRAD_GDPR_COOKIE_GROUP_ACTIVE_PRIORITY" indexType="btree">
+            <column name="is_active"/><column name="priority"/>
+        </index>
+    </table>
+
+    <table name="kkkonrad_gdpr_cookie_group_store" resource="default" engine="innodb" comment="GDPR Cookie Group Store Data">
+        <column xsi:type="int" name="group_store_id" unsigned="true" nullable="false" identity="true" comment="Group Store ID"/>
+        <column xsi:type="int" name="group_id" unsigned="true" nullable="false" comment="Group ID"/>
+        <column xsi:type="smallint" name="store_id" unsigned="true" nullable="false" comment="Store ID"/>
+        <column xsi:type="varchar" name="name" length="255" nullable="false" comment="Displayed Name"/>
+        <column xsi:type="text" name="description" nullable="false" comment="Displayed Description"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY"><column name="group_store_id"/></constraint>
+        <constraint xsi:type="unique" referenceId="KKKONRAD_GDPR_COOKIE_GROUP_STORE_GROUP_STORE">
+            <column name="group_id"/><column name="store_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="KKKONRAD_GDPR_COOKIE_GROUP_STORE_GROUP_ID_GROUP_GROUP_ID"
+                    table="kkkonrad_gdpr_cookie_group_store" column="group_id"
+                    referenceTable="kkkonrad_gdpr_cookie_group" referenceColumn="group_id" onDelete="CASCADE"/>
+    </table>
+
+    <table name="kkkonrad_gdpr_cookie" resource="default" engine="innodb" comment="GDPR Cookie Catalog">
+        <column xsi:type="int" name="cookie_id" unsigned="true" nullable="false" identity="true" comment="Cookie ID"/>
+        <column xsi:type="int" name="group_id" unsigned="true" nullable="false" comment="Group ID"/>
+        <column xsi:type="varchar" name="name" length="255" nullable="false" comment="Cookie Name"/>
+        <column xsi:type="varchar" name="code_pattern" length="255" nullable="false" comment="Cookie Code or Suffix Wildcard"/>
+        <column xsi:type="varchar" name="storage_type" length="24" nullable="false" default="cookie" comment="Storage Type"/>
+        <column xsi:type="int" name="lifetime" unsigned="true" nullable="true" comment="Lifetime Seconds"/>
+        <column xsi:type="boolean" name="is_active" nullable="false" default="true" comment="Is Active"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP" comment="Updated At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY"><column name="cookie_id"/></constraint>
+        <constraint xsi:type="unique" referenceId="KKKONRAD_GDPR_COOKIE_PATTERN_TYPE">
+            <column name="code_pattern"/><column name="storage_type"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="KKKONRAD_GDPR_COOKIE_GROUP_ID_GROUP_GROUP_ID"
+                    table="kkkonrad_gdpr_cookie" column="group_id"
+                    referenceTable="kkkonrad_gdpr_cookie_group" referenceColumn="group_id" onDelete="NO ACTION"/>
+        <index referenceId="KKKONRAD_GDPR_COOKIE_GROUP_ACTIVE" indexType="btree">
+            <column name="group_id"/><column name="is_active"/>
+        </index>
+    </table>
+
+    <table name="kkkonrad_gdpr_cookie_store" resource="default" engine="innodb" comment="GDPR Cookie Store Data">
+        <column xsi:type="int" name="cookie_store_id" unsigned="true" nullable="false" identity="true" comment="Cookie Store ID"/>
+        <column xsi:type="int" name="cookie_id" unsigned="true" nullable="false" comment="Cookie ID"/>
+        <column xsi:type="smallint" name="store_id" unsigned="true" nullable="false" comment="Store ID"/>
+        <column xsi:type="text" name="description" nullable="false" comment="Displayed Description"/>
+        <column xsi:type="boolean" name="is_active" nullable="false" default="true" comment="Is Active in Store"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY"><column name="cookie_store_id"/></constraint>
+        <constraint xsi:type="unique" referenceId="KKKONRAD_GDPR_COOKIE_STORE_COOKIE_STORE">
+            <column name="cookie_id"/><column name="store_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="KKKONRAD_GDPR_COOKIE_STORE_COOKIE_ID_COOKIE_COOKIE_ID"
+                    table="kkkonrad_gdpr_cookie_store" column="cookie_id"
+                    referenceTable="kkkonrad_gdpr_cookie" referenceColumn="cookie_id" onDelete="CASCADE"/>
+    </table>
+
+    <table name="kkkonrad_gdpr_cookie_policy_version" resource="default" engine="innodb" comment="Published Cookie Policy Versions">
+        <column xsi:type="bigint" name="policy_version_id" unsigned="true" nullable="false" identity="true" comment="Policy Version ID"/>
+        <column xsi:type="smallint" name="store_id" unsigned="true" nullable="false" comment="Store ID"/>
+        <column xsi:type="varchar" name="public_id" length="36" nullable="false" comment="Public UUID"/>
+        <column xsi:type="int" name="version" unsigned="true" nullable="false" comment="Version Number"/>
+        <column xsi:type="varchar" name="configuration_hash" length="64" nullable="false" comment="SHA-256 Configuration Hash"/>
+        <column xsi:type="timestamp" name="published_at" nullable="false" default="CURRENT_TIMESTAMP" comment="Published At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY"><column name="policy_version_id"/></constraint>
+        <constraint xsi:type="unique" referenceId="KKKONRAD_GDPR_COOKIE_POLICY_PUBLIC_ID"><column name="public_id"/></constraint>
+        <constraint xsi:type="unique" referenceId="KKKONRAD_GDPR_COOKIE_POLICY_STORE_VERSION">
+            <column name="store_id"/><column name="version"/>
+        </constraint>
+    </table>
+
+    <table name="kkkonrad_gdpr_cookie_consent_event" resource="default" engine="innodb" comment="Append-only Cookie Consent Events">
+        <column xsi:type="bigint" name="event_id" unsigned="true" nullable="false" identity="true" comment="Event ID"/>
+        <column xsi:type="bigint" name="policy_version_id" unsigned="true" nullable="false" comment="Policy Version ID"/>
+        <column xsi:type="int" name="customer_id" unsigned="true" nullable="true" comment="Customer ID Without Foreign Key"/>
+        <column xsi:type="varchar" name="subject_key" length="64" nullable="false" comment="Pseudonymous Subject Key"/>
+        <column xsi:type="text" name="choices_json" nullable="false" comment="Cookie Group Choices JSON"/>
+        <column xsi:type="varchar" name="region" length="16" nullable="true" comment="ISO Region"/>
+        <column xsi:type="smallint" name="store_id" unsigned="true" nullable="false" comment="Store ID"/>
+        <column xsi:type="varchar" name="correlation_id" length="64" nullable="true" comment="Correlation ID"/>
+        <column xsi:type="timestamp" name="occurred_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Occurred At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY"><column name="event_id"/></constraint>
+        <constraint xsi:type="foreign" referenceId="KKKONRAD_GDPR_COOKIE_EVENT_POLICY_ID_POLICY_POLICY_ID"
+                    table="kkkonrad_gdpr_cookie_consent_event" column="policy_version_id"
+                    referenceTable="kkkonrad_gdpr_cookie_policy_version" referenceColumn="policy_version_id" onDelete="NO ACTION"/>
+        <index referenceId="KKKONRAD_GDPR_COOKIE_EVENT_SUBJECT_OCCURRED" indexType="btree">
+            <column name="subject_key"/><column name="occurred_at"/>
+        </index>
+        <index referenceId="KKKONRAD_GDPR_COOKIE_EVENT_CUSTOMER_OCCURRED" indexType="btree">
+            <column name="customer_id"/><column name="occurred_at"/>
+        </index>
+    </table>
+
+    <table name="kkkonrad_gdpr_rejected_cookie" resource="default" engine="innodb" comment="Rejected Cookie Diagnostics Without Values">
+        <column xsi:type="bigint" name="rejected_id" unsigned="true" nullable="false" identity="true" comment="Rejected ID"/>
+        <column xsi:type="smallint" name="store_id" unsigned="true" nullable="false" comment="Store ID"/>
+        <column xsi:type="varchar" name="cookie_name" length="255" nullable="false" comment="Cookie Name"/>
+        <column xsi:type="varchar" name="name_hash" length="64" nullable="false" comment="Cookie Name Hash"/>
+        <column xsi:type="varchar" name="domain" length="255" nullable="true" comment="Cookie Domain"/>
+        <column xsi:type="varchar" name="domain_hash" length="64" nullable="false" comment="Cookie Domain Hash"/>
+        <column xsi:type="boolean" name="is_unknown" nullable="false" default="true" comment="Is Unknown"/>
+        <column xsi:type="int" name="occurrence_count" unsigned="true" nullable="false" default="1" comment="Occurrence Count"/>
+        <column xsi:type="timestamp" name="first_seen_at" nullable="false" default="CURRENT_TIMESTAMP" comment="First Seen At"/>
+        <column xsi:type="timestamp" name="last_seen_at" nullable="false" default="CURRENT_TIMESTAMP" on_update="true" comment="Last Seen At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY"><column name="rejected_id"/></constraint>
+        <constraint xsi:type="unique" referenceId="KKKONRAD_GDPR_REJECTED_STORE_NAME_DOMAIN">
+            <column name="store_id"/><column name="name_hash"/><column name="domain_hash"/>
+        </constraint>
+        <index referenceId="KKKONRAD_GDPR_REJECTED_UNKNOWN_LAST_SEEN" indexType="btree">
+            <column name="is_unknown"/><column name="last_seen_at"/>
+        </index>
+    </table>
+</schema>
