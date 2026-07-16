@@ -1,0 +1,31 @@
+{
+    "name": "kkkonrad/module-gdpr",
+    "description": "GDPR privacy, consent and cookie management for Magento 2",
+    "type": "magento2-module",
+    "license": "OSL-3.0",
+    "require": {
+        "php": ">=8.2 <8.5",
+        "magento/framework": "*",
+        "magento/module-backend": "*",
+        "magento/module-config": "*",
+        "magento/module-customer": "*",
+        "magento/module-csp": "*",
+        "magento/module-email": "*",
+        "magento/module-newsletter": "*",
+        "magento/module-quote": "*",
+        "magento/module-review": "*",
+        "magento/module-sales": "*",
+        "magento/module-store": "*",
+        "magento/module-ui": "*",
+        "magento/module-vault": "*",
+        "magento/module-wishlist": "*"
+    },
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "Kkkonrad\\Gdpr\\": ""
+        }
+    }
+}

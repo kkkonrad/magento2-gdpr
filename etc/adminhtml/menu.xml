@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="Kkkonrad_Gdpr::gdpr" title="GDPR" module="Kkkonrad_Gdpr" sortOrder="90"
+             parent="Magento_Customer::customer" resource="Kkkonrad_Gdpr::gdpr"/>
+        <add id="Kkkonrad_Gdpr::requests" title="Customer Requests" module="Kkkonrad_Gdpr" sortOrder="10"
+             parent="Kkkonrad_Gdpr::gdpr" action="kkkonrad_gdpr/request/index"
+             resource="Kkkonrad_Gdpr::requests_view"/>
+        <add id="Kkkonrad_Gdpr::consents" title="Consents" module="Kkkonrad_Gdpr" sortOrder="20"
+             parent="Kkkonrad_Gdpr::gdpr" action="kkkonrad_gdpr/consent/index"
+             resource="Kkkonrad_Gdpr::consents_view"/>
+        <add id="Kkkonrad_Gdpr::cookies" title="Cookie Catalog" module="Kkkonrad_Gdpr" sortOrder="30"
+             parent="Kkkonrad_Gdpr::gdpr" action="kkkonrad_gdpr/cookie/index"
+             resource="Kkkonrad_Gdpr::cookies_view"/>
+        <add id="Kkkonrad_Gdpr::configuration" title="Configuration" module="Kkkonrad_Gdpr" sortOrder="100"
+             parent="Kkkonrad_Gdpr::gdpr" action="adminhtml/system_config/edit/section/kkkonrad_gdpr"
+             resource="Kkkonrad_Gdpr::configuration"/>
+    </menu>
+</config>

@@ -1,0 +1,162 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="kkkonrad" translate="label" sortOrder="300">
+            <label>Kkkonrad</label>
+        </tab>
+        <section id="kkkonrad_gdpr" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+            <tab>kkkonrad</tab>
+            <label>GDPR Settings</label>
+            <resource>Kkkonrad_Gdpr::configuration</resource>
+
+            <group id="general" translate="label" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>General</label>
+                <field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable GDPR</label>
+                    <comment>Disabling stops new storefront actions and jobs but preserves configuration and read-only history.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+
+            <group id="data_rights" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Personal Data Rights</label>
+                <field id="dashboard_enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show Privacy Dashboard</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="export_request_enabled" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Allow Personal Data Export Requests</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="anonymization_request_enabled" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Allow Anonymization Requests</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="anonymization_order_statuses" translate="label comment" type="multiselect" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Order Statuses Eligible for Anonymization</label>
+                    <comment>Orders outside these statuses block customer-initiated anonymization.</comment>
+                    <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
+                </field>
+                <field id="erasure_request_enabled" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Allow Account Erasure Requests</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="export_ttl_hours" translate="label comment" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Export File Lifetime (Hours)</label>
+                    <comment>Generated files are deleted after this period.</comment>
+                    <validate>required-entry validate-digits validate-greater-than-zero</validate>
+                </field>
+                <field id="batch_size" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Processing Batch Size</label>
+                    <validate>required-entry validate-digits validate-greater-than-zero</validate>
+                </field>
+            </group>
+
+            <group id="automation" translate="label" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Retention Automation</label>
+                <field id="retention_old_orders_enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Automatically Anonymize Old Orders</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <config_path>kkkonrad_gdpr/data_rights/retention_old_orders_enabled</config_path>
+                </field>
+                <field id="retention_old_orders_days" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Old Order Age (Days)</label>
+                    <validate>required-entry validate-digits validate-greater-than-zero</validate>
+                    <config_path>kkkonrad_gdpr/data_rights/retention_old_orders_days</config_path>
+                </field>
+                <field id="retention_abandoned_accounts_enabled" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Process Abandoned Accounts</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <config_path>kkkonrad_gdpr/data_rights/retention_abandoned_accounts_enabled</config_path>
+                </field>
+                <field id="retention_abandoned_accounts_days" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Abandoned Account Age (Days)</label>
+                    <validate>required-entry validate-digits validate-greater-than-zero</validate>
+                    <config_path>kkkonrad_gdpr/data_rights/retention_abandoned_accounts_days</config_path>
+                </field>
+            </group>
+
+            <group id="consent" translate="label" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Form Consents</label>
+                <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Form Consents</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="registration_enabled" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Registration Form</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="newsletter_enabled" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Newsletter Form</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="contact_enabled" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Contact Form</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="checkout_enabled" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Checkout</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+
+            <group id="cookie" translate="label" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Cookie Consent</label>
+                <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Cookie Consent</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="disabled_fallback" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Fallback When Cookie Consent Is Disabled</label>
+                    <comment>Allow unmanaged can activate optional integrations without a recorded choice. Obtain legal approval before using it.</comment>
+                    <source_model>Kkkonrad\Gdpr\Model\Config\Source\CookieDisabledFallback</source_model>
+                </field>
+                <field id="banner_enabled" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show Cookie Banner</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="rejected_tracking_enabled" translate="label comment" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Track Rejected Cookies</label>
+                    <comment>Never stores cookie values. Enabling adds a small frontend and database overhead.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="track_unknown_only" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Track Unknown Cookies Only</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="geolocation_enabled" translate="label" type="select" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Regional Display Rules</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="consent_lifetime_days" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cookie Consent Lifetime (Days)</label>
+                    <validate>required-entry validate-digits validate-greater-than-zero</validate>
+                </field>
+                <field id="banner_text" translate="label comment" type="textarea" sortOrder="80" showInDefault="1" showInWebsite="0" showInStore="1">
+                    <label>Banner Text</label>
+                    <comment>Plain text. Links are configured separately to avoid unsafe HTML.</comment>
+                </field>
+                <field id="modal_title" translate="label" type="text" sortOrder="90" showInDefault="1" showInWebsite="0" showInStore="1">
+                    <label>Settings Modal Title</label>
+                </field>
+                <field id="modal_text" translate="label" type="textarea" sortOrder="100" showInDefault="1" showInWebsite="0" showInStore="1">
+                    <label>Settings Modal Text</label>
+                </field>
+            </group>
+
+            <group id="google_consent" translate="label" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Google Consent Mode v2</label>
+                <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Google Consent Mode</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="default_mode" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Default Consent</label>
+                    <comment>Custom values will be added after the initial denied/essential implementation is verified.</comment>
+                    <source_model>Kkkonrad\Gdpr\Model\Config\Source\GoogleConsentDefault</source_model>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>
