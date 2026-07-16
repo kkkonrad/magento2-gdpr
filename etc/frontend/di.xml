@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Magento\Customer\Api\AccountManagementInterface">
+        <plugin name="kkkonrad_gdpr_validate_registration_consent"
+                type="Kkkonrad\Gdpr\Plugin\Consent\CustomerCreatePostPlugin"
+                sortOrder="10"/>
+    </type>
+    <type name="Magento\Newsletter\Model\SubscriptionManagerInterface">
+        <plugin name="kkkonrad_gdpr_newsletter_consent"
+                type="Kkkonrad\Gdpr\Plugin\Consent\NewsletterSubscriptionPlugin"
+                sortOrder="10"/>
+    </type>
+    <type name="Magento\Contact\Model\MailInterface">
+        <plugin name="kkkonrad_gdpr_contact_consent"
+                type="Kkkonrad\Gdpr\Plugin\Consent\ContactMailPlugin"
+                sortOrder="10"/>
+    </type>
+    <type name="Magento\Checkout\Api\PaymentInformationManagementInterface">
+        <plugin name="kkkonrad_gdpr_checkout_consent"
+                type="Kkkonrad\Gdpr\Plugin\Consent\CheckoutConsentPlugin"
+                sortOrder="10"/>
+    </type>
+    <type name="Magento\Checkout\Api\GuestPaymentInformationManagementInterface">
+        <plugin name="kkkonrad_gdpr_guest_checkout_consent"
+                type="Kkkonrad\Gdpr\Plugin\Consent\GuestCheckoutConsentPlugin"
+                sortOrder="10"/>
+    </type>
+    <type name="Magento\Checkout\Model\CompositeConfigProvider">
+        <arguments>
+            <argument name="configProviders" xsi:type="array">
+                <item name="kkkonrad_gdpr_checkout" xsi:type="object">Kkkonrad\Gdpr\Model\Checkout\ConfigProvider</item>
+            </argument>
+        </arguments>
+    </type>
+</config>

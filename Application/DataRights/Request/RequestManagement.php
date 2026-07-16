@@ -16,7 +16,7 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Ramsey\Uuid\Uuid;
 use Throwable;
 
-final class RequestManagement implements RequestManagementInterface
+class RequestManagement implements RequestManagementInterface
 {
     private const ACTOR_TYPES = ['customer', 'admin', 'system'];
 
@@ -41,7 +41,7 @@ final class RequestManagement implements RequestManagementInterface
 
         $connection->beginTransaction();
         try {
-            $existingId = $connection->fetchOne(
+            $existingRows = $connection->fetchAll(
                 $connection->select()
                     ->from($requestTable, ['request_id'])
                     ->where('customer_id = ?', $customerId)
@@ -50,7 +50,7 @@ final class RequestManagement implements RequestManagementInterface
                     ->limit(1)
                     ->forUpdate(true)
             );
-            if ($existingId !== false) {
+            if ($existingRows !== []) {
                 throw new AlreadyExistsException(__('An active request of this type already exists.'));
             }
 
@@ -62,7 +62,7 @@ final class RequestManagement implements RequestManagementInterface
                 'status' => RequestStatus::SUBMITTED,
                 'store_id' => $storeId,
             ]);
-            $requestId = (int)$connection->lastInsertId($requestTable);
+            $requestId = (int)$connection->fetchOne('SELECT LAST_INSERT_ID()');
 
             $connection->insert($eventTable, [
                 'request_id' => $requestId,
@@ -80,6 +80,7 @@ final class RequestManagement implements RequestManagementInterface
         }
     }
 
+    /** @param array<string, mixed> $metadata */
     public function transition(
         int $requestId,
         string $targetStatus,

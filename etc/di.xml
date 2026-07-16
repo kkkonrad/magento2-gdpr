@@ -7,11 +7,49 @@
                 type="Kkkonrad\Gdpr\Application\DataRights\Request\RequestManagement"/>
     <preference for="Kkkonrad\Gdpr\Api\JobSchedulerInterface"
                 type="Kkkonrad\Gdpr\Infrastructure\Persistence\JobQueue"/>
+    <preference for="Kkkonrad\Gdpr\Api\Consent\ConsentDefinitionManagementInterface"
+                type="Kkkonrad\Gdpr\Application\Consent\ConsentDefinitionManagement"/>
+    <preference for="Kkkonrad\Gdpr\Api\Consent\ActiveConsentsProviderInterface"
+                type="Kkkonrad\Gdpr\Application\Consent\ActiveConsentsProvider"/>
+    <preference for="Kkkonrad\Gdpr\Api\Consent\ConsentRecorderInterface"
+                type="Kkkonrad\Gdpr\Application\Consent\ConsentRecorder"/>
+    <preference for="Kkkonrad\Gdpr\Api\Cookie\CookieRegistryInterface"
+                type="Kkkonrad\Gdpr\Application\Cookie\CookieRegistry"/>
+    <preference for="Kkkonrad\Gdpr\Api\Cookie\CookiePolicyVersionProviderInterface"
+                type="Kkkonrad\Gdpr\Application\Cookie\CookiePolicyVersionProvider"/>
+    <preference for="Kkkonrad\Gdpr\Api\Cookie\CookieDecisionRecorderInterface"
+                type="Kkkonrad\Gdpr\Application\Cookie\CookieDecisionRecorder"/>
+    <preference for="Kkkonrad\Gdpr\Api\Geo\RegionResolverInterface"
+                type="Kkkonrad\Gdpr\Application\Geo\HeaderRegionResolver"/>
 
     <type name="Magento\Framework\Console\CommandListInterface">
         <arguments>
             <argument name="commands" xsi:type="array">
                 <item name="kkkonrad_gdpr_run_jobs" xsi:type="object">Kkkonrad\Gdpr\Console\Command\RunJobsCommand</item>
+            </argument>
+        </arguments>
+    </type>
+    <type name="Magento\Framework\Logger\Monolog">
+        <arguments>
+            <argument name="processors" xsi:type="array">
+                <item name="kkkonrad_gdpr_redaction" xsi:type="object">Kkkonrad\Gdpr\Infrastructure\Logging\RedactionProcessor</item>
+            </argument>
+        </arguments>
+    </type>
+    <type name="Kkkonrad\Gdpr\Domain\Shared\Job\JobProcessorPool">
+        <arguments>
+            <argument name="processors" xsi:type="array">
+                <item name="export_generate" xsi:type="object">Kkkonrad\Gdpr\Application\DataRights\Export\ExportGenerationProcessor</item>
+                <item name="customer_anonymize" xsi:type="object">Kkkonrad\Gdpr\Application\DataRights\Anonymization\AnonymizationProcessor</item>
+                <item name="customer_erase" xsi:type="object">Kkkonrad\Gdpr\Application\DataRights\Erasure\ErasureProcessor</item>
+                <item name="retention_old_orders" xsi:type="object">Kkkonrad\Gdpr\Application\DataRights\Retention\OldOrdersProcessor</item>
+            </argument>
+        </arguments>
+    </type>
+    <type name="Kkkonrad\Gdpr\Application\DataRights\EligibilityPolicy">
+        <arguments>
+            <argument name="legalHoldProviders" xsi:type="array">
+                <item name="kkkonrad_rma" xsi:type="object">Kkkonrad\Gdpr\Application\DataRights\LegalHold\RmaLegalHoldProvider</item>
             </argument>
         </arguments>
     </type>

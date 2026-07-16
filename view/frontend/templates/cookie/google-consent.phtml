@@ -1,0 +1,21 @@
+<?php
+declare(strict_types=1);
+
+use Kkkonrad\Gdpr\Block\Cookie\GoogleConsent;
+use Magento\Framework\View\Helper\SecureHtmlRenderer;
+
+/** @var GoogleConsent $block */
+/** @var SecureHtmlRenderer $secureRenderer */
+if (!$block->isEnabled()) {
+    return;
+}
+$state = json_encode($block->getDefaultState(), JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+$debug = $block->isDebugEnabled() ? 'true' : 'false';
+$script = <<<JS
+window.dataLayer = window.dataLayer || [];
+window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
+window.gtag('consent', 'default', {$state});
+if ({$debug}) { window.console.info('Kkkonrad GDPR Consent Mode default applied.'); }
+JS;
+?>
+<?= /* @noEscape */ $secureRenderer->renderTag('script', [], $script, false) ?>

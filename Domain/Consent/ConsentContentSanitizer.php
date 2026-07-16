@@ -56,6 +56,8 @@ class ConsentContentSanitizer
 
     private function sanitizeAttributes(DOMElement $element, string $tag): void
     {
+        $href = $tag === 'a' ? trim($element->getAttribute('href')) : '';
+        $title = $tag === 'a' ? trim($element->getAttribute('title')) : '';
         $attributeNames = [];
         foreach ($element->attributes as $attribute) {
             $attributeNames[] = $attribute->name;
@@ -67,9 +69,23 @@ class ConsentContentSanitizer
         if ($tag !== 'a') {
             return;
         }
+        if ($href !== '' && $this->isSafeHref($href)) {
+            $element->setAttribute('href', $href);
+            $element->setAttribute('rel', 'noopener noreferrer');
+        }
+        if ($title !== '') {
+            $element->setAttribute('title', mb_substr($title, 0, 255));
+        }
+    }
 
-        // Attributes were intentionally removed above. Links are restored only by
-        // save-time validation in a later iteration when a trusted href is supplied.
+    private function isSafeHref(string $href): bool
+    {
+        if (str_starts_with($href, '/') || str_starts_with($href, '#')) {
+            return !str_starts_with($href, '//');
+        }
+        $scheme = parse_url($href, PHP_URL_SCHEME);
+
+        return is_string($scheme) && in_array(strtolower($scheme), self::ALLOWED_LINK_SCHEMES, true);
     }
 
     private function unwrap(DOMElement $element): void

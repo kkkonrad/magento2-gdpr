@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <event name="admin_system_config_changed_section_kkkonrad_gdpr">
+        <observer name="kkkonrad_gdpr_audit_configuration_change"
+                  instance="Kkkonrad\Gdpr\Observer\Adminhtml\AuditConfigurationChange"/>
+    </event>
+</config>

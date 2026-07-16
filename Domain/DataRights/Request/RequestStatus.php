@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Kkkonrad\Gdpr\Domain\DataRights\Request;
 
-final class RequestStatus
+class RequestStatus
 {
     public const SUBMITTED = 'submitted';
     public const VALIDATION = 'validation';

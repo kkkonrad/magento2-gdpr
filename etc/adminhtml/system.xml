@@ -151,10 +151,43 @@
                     <label>Enable Google Consent Mode</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="default_mode" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Default Consent</label>
-                    <comment>Custom values will be added after the initial denied/essential implementation is verified.</comment>
+                <field id="implementation_mode" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Implementation Mode</label>
+                    <comment>In Basic mode every optional Google tag must additionally be gated by the Cookie Consent API.</comment>
+                    <source_model>Kkkonrad\Gdpr\Model\Config\Source\GoogleConsentImplementationMode</source_model>
+                </field>
+                <field id="ad_storage" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Default ad_storage</label>
                     <source_model>Kkkonrad\Gdpr\Model\Config\Source\GoogleConsentDefault</source_model>
+                </field>
+                <field id="analytics_storage" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Default analytics_storage</label>
+                    <source_model>Kkkonrad\Gdpr\Model\Config\Source\GoogleConsentDefault</source_model>
+                </field>
+                <field id="functionality_storage" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Default functionality_storage</label>
+                    <source_model>Kkkonrad\Gdpr\Model\Config\Source\GoogleConsentDefault</source_model>
+                </field>
+                <field id="personalization_storage" translate="label" type="select" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Default personalization_storage</label>
+                    <source_model>Kkkonrad\Gdpr\Model\Config\Source\GoogleConsentDefault</source_model>
+                </field>
+                <field id="security_storage" translate="label" type="select" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Default security_storage</label>
+                    <source_model>Kkkonrad\Gdpr\Model\Config\Source\GoogleConsentDefault</source_model>
+                </field>
+                <field id="ad_user_data" translate="label" type="select" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Default ad_user_data</label>
+                    <source_model>Kkkonrad\Gdpr\Model\Config\Source\GoogleConsentDefault</source_model>
+                </field>
+                <field id="ad_personalization" translate="label" type="select" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Default ad_personalization</label>
+                    <source_model>Kkkonrad\Gdpr\Model\Config\Source\GoogleConsentDefault</source_model>
+                </field>
+                <field id="debug_enabled" translate="label comment" type="select" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Consent Debug Logging</label>
+                    <comment>Enable only during diagnostics; no personal data is written to the console.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
             </group>
         </section>

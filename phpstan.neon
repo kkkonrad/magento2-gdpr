@@ -1,10 +1,8 @@
 parameters:
     level: 6
     paths:
-        - Api
-        - Application
-        - Domain
-        - Infrastructure
-        - Model
+        - .
+    excludePaths:
+        - Test
     tmpDir: ../../../../var/phpstan/kkkonrad-gdpr
     reportUnmatchedIgnoredErrors: false

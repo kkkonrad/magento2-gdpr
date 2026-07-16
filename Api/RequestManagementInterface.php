@@ -12,6 +12,7 @@ interface RequestManagementInterface
         ?string $subjectKey = null
     ): int;
 
+    /** @param array<string, mixed> $metadata */
     public function transition(
         int $requestId,
         string $targetStatus,

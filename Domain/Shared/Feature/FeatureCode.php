@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Kkkonrad\Gdpr\Domain\Shared\Feature;
 
-final class FeatureCode
+class FeatureCode
 {
     public const MODULE = 'module';
     public const DASHBOARD = 'data_rights.dashboard';

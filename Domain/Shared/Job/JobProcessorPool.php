@@ -5,7 +5,7 @@ namespace Kkkonrad\Gdpr\Domain\Shared\Job;
 
 use InvalidArgumentException;
 
-final class JobProcessorPool
+class JobProcessorPool
 {
     /** @var array<string, JobProcessorInterface> */
     private array $processors = [];

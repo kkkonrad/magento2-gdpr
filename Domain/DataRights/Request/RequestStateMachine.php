@@ -5,7 +5,7 @@ namespace Kkkonrad\Gdpr\Domain\DataRights\Request;
 
 use DomainException;
 
-final class RequestStateMachine
+class RequestStateMachine
 {
     private const TRANSITIONS = [
         RequestStatus::SUBMITTED => [RequestStatus::VALIDATION],

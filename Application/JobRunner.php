@@ -9,7 +9,7 @@ use Kkkonrad\Gdpr\Infrastructure\Persistence\JobQueue;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
-final class JobRunner
+class JobRunner
 {
     public function __construct(
         private readonly JobQueue $jobQueue,
@@ -18,6 +18,7 @@ final class JobRunner
     ) {
     }
 
+    /** @return array{processed:int, failed:int} */
     public function run(int $limit = 100): array
     {
         $processed = 0;

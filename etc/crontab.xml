@@ -5,5 +5,15 @@
         <job name="kkkonrad_gdpr_process_jobs" instance="Kkkonrad\Gdpr\Cron\ProcessJobs" method="execute">
             <schedule>* * * * *</schedule>
         </job>
+        <job name="kkkonrad_gdpr_schedule_retention"
+             instance="Kkkonrad\Gdpr\Cron\ScheduleRetention"
+             method="execute">
+            <schedule>15 2 * * *</schedule>
+        </job>
+        <job name="kkkonrad_gdpr_cleanup_expired_exports"
+             instance="Kkkonrad\Gdpr\Cron\CleanupExpiredExports"
+             method="execute">
+            <schedule>35 * * * *</schedule>
+        </job>
     </group>
 </config>

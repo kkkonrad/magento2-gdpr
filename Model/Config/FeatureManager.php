@@ -9,7 +9,7 @@ use Kkkonrad\Gdpr\Domain\Shared\Feature\FeatureCode;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Store\Model\ScopeInterface;
 
-final class FeatureManager implements FeatureManagerInterface
+class FeatureManager implements FeatureManagerInterface
 {
     private const XML_PATHS = [
         FeatureCode::MODULE => ['kkkonrad_gdpr/general/enabled'],

@@ -3,8 +3,12 @@ declare(strict_types=1);
 
 namespace Kkkonrad\Gdpr\Domain\Shared\Job;
 
-final readonly class JobContext
+class JobContext
 {
+    /**
+     * @param array<string, mixed> $payload
+     * @param array<string, mixed> $configSnapshot
+     */
     public function __construct(
         public int $jobId,
         public string $publicId,
@@ -18,6 +22,7 @@ final readonly class JobContext
     ) {
     }
 
+    /** @param array<string, mixed> $row */
     public static function fromRow(array $row): self
     {
         return new self(
@@ -33,6 +38,7 @@ final readonly class JobContext
         );
     }
 
+    /** @return array<string, mixed> */
     private static function decodeJson(mixed $value): array
     {
         if (!is_string($value) || $value === '') {

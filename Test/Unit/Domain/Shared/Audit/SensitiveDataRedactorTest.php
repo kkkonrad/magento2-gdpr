@@ -23,4 +23,15 @@ final class SensitiveDataRedactorTest extends TestCase
         self::assertSame(2, $result['nested']['count']);
         self::assertArrayNotHasKey('object', $result);
     }
+
+    public function testRedactsSensitiveValuesEmbeddedInMessages(): void
+    {
+        $result = (new SensitiveDataRedactor())->redact([
+            'message' => 'Failed for person@example.com with Bearer abc.def and token=abc123',
+        ]);
+
+        self::assertStringNotContainsString('person@example.com', $result['message']);
+        self::assertStringNotContainsString('abc.def', $result['message']);
+        self::assertStringNotContainsString('abc123', $result['message']);
+    }
 }

@@ -6,7 +6,7 @@ namespace Kkkonrad\Gdpr\Setup\Patch\Data;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
 
-final class InstallDefaultCookieCatalog implements DataPatchInterface
+class InstallDefaultCookieCatalog implements DataPatchInterface
 {
     private const GROUPS = [
         ['code' => 'essential', 'type' => 'essential', 'required' => 1, 'priority' => 10,
@@ -59,10 +59,10 @@ final class InstallDefaultCookieCatalog implements DataPatchInterface
         $this->moduleDataSetup->startSetup();
         try {
             foreach (self::GROUPS as $group) {
-                $groupId = $connection->fetchOne(
+                $groupRows = $connection->fetchAll(
                     $connection->select()->from($groupTable, ['group_id'])->where('code = ?', $group['code'])
                 );
-                if ($groupId === false) {
+                if ($groupRows === []) {
                     $connection->insert($groupTable, [
                         'code' => $group['code'],
                         'type' => $group['type'],
@@ -70,16 +70,18 @@ final class InstallDefaultCookieCatalog implements DataPatchInterface
                         'is_active' => 1,
                         'priority' => $group['priority'],
                     ]);
-                    $groupId = (int)$connection->lastInsertId($groupTable);
+                    $groupId = (int)$connection->fetchOne('SELECT LAST_INSERT_ID()');
+                } else {
+                    $groupId = (int)$groupRows[0]['group_id'];
                 }
 
-                $storeRowExists = $connection->fetchOne(
+                $storeRows = $connection->fetchAll(
                     $connection->select()
                         ->from($groupStoreTable, ['group_store_id'])
                         ->where('group_id = ?', (int)$groupId)
                         ->where('store_id = 0')
                 );
-                if ($storeRowExists === false) {
+                if ($storeRows === []) {
                     $connection->insert($groupStoreTable, [
                         'group_id' => (int)$groupId,
                         'store_id' => 0,
@@ -93,13 +95,13 @@ final class InstallDefaultCookieCatalog implements DataPatchInterface
                 $connection->select()->from($groupTable, ['group_id'])->where('code = ?', 'essential')
             );
             foreach (self::ESSENTIAL_STORAGE as $cookie) {
-                $cookieId = $connection->fetchOne(
+                $cookieRows = $connection->fetchAll(
                     $connection->select()
                         ->from($cookieTable, ['cookie_id'])
                         ->where('code_pattern = ?', $cookie['pattern'])
                         ->where('storage_type = ?', $cookie['type'])
                 );
-                if ($cookieId === false) {
+                if ($cookieRows === []) {
                     $connection->insert($cookieTable, [
                         'group_id' => $essentialGroupId,
                         'name' => $cookie['name'],
@@ -108,16 +110,18 @@ final class InstallDefaultCookieCatalog implements DataPatchInterface
                         'lifetime' => $cookie['lifetime'],
                         'is_active' => 1,
                     ]);
-                    $cookieId = (int)$connection->lastInsertId($cookieTable);
+                    $cookieId = (int)$connection->fetchOne('SELECT LAST_INSERT_ID()');
+                } else {
+                    $cookieId = (int)$cookieRows[0]['cookie_id'];
                 }
 
-                $storeRowExists = $connection->fetchOne(
+                $storeRows = $connection->fetchAll(
                     $connection->select()
                         ->from($cookieStoreTable, ['cookie_store_id'])
                         ->where('cookie_id = ?', (int)$cookieId)
                         ->where('store_id = 0')
                 );
-                if ($storeRowExists === false) {
+                if ($storeRows === []) {
                     $connection->insert($cookieStoreTable, [
                         'cookie_id' => (int)$cookieId,
                         'store_id' => 0,

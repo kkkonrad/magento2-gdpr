@@ -5,14 +5,14 @@ namespace Kkkonrad\Gdpr\Model\Config\Source;
 
 use Magento\Framework\Data\OptionSourceInterface;
 
-final class GoogleConsentDefault implements OptionSourceInterface
+class GoogleConsentDefault implements OptionSourceInterface
 {
+    /** @return array<int, array{value:string, label:\Magento\Framework\Phrase}> */
     public function toOptionArray(): array
     {
         return [
-            ['value' => 'denied', 'label' => __('Denied for all optional storage (recommended)')],
-            ['value' => 'essential', 'label' => __('Granted for security storage only')],
-            ['value' => 'custom', 'label' => __('Custom')],
+            ['value' => 'denied', 'label' => __('Denied')],
+            ['value' => 'granted', 'label' => __('Granted')],
         ];
     }
 }

@@ -1,0 +1,11 @@
+<?php
+declare(strict_types=1);
+
+use Kkkonrad\Gdpr\Block\Cookie\DisabledFallback;
+
+/** @var DisabledFallback $block */
+if (!$block->shouldAllowUnmanaged()) {
+    return;
+}
+?>
+<div data-kkkonrad-gdpr-allow-unmanaged hidden></div>

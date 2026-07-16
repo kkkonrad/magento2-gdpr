@@ -13,7 +13,7 @@ use Magento\Framework\App\ResourceConnection;
 use Ramsey\Uuid\Uuid;
 use Zend_Db_Expr;
 
-final class JobQueue implements JobSchedulerInterface
+class JobQueue implements JobSchedulerInterface
 {
     public function __construct(
         private readonly ResourceConnection $resourceConnection,
@@ -22,6 +22,10 @@ final class JobQueue implements JobSchedulerInterface
     ) {
     }
 
+    /**
+     * @param array<string, mixed> $payload
+     * @param array<string, mixed> $configSnapshot
+     */
     public function schedule(
         string $type,
         string $featureCode,
@@ -36,6 +40,13 @@ final class JobQueue implements JobSchedulerInterface
         }
         if (!in_array($featureCode, FeatureCode::ALL, true)) {
             throw new InvalidArgumentException(sprintf('Unknown GDPR feature code "%s".', $featureCode));
+        }
+        if (!$this->featureManager->isEnabled($featureCode, $storeId)) {
+            throw new InvalidArgumentException(sprintf(
+                'GDPR feature "%s" is disabled for store %d.',
+                $featureCode,
+                $storeId
+            ));
         }
 
         $table = $this->resourceConnection->getTableName('kkkonrad_gdpr_job');
@@ -69,6 +80,7 @@ final class JobQueue implements JobSchedulerInterface
         );
     }
 
+    /** @return array<string, mixed>|null */
     public function claimNext(string $workerId): ?array
     {
         $table = $this->resourceConnection->getTableName('kkkonrad_gdpr_job');
@@ -158,6 +170,7 @@ final class JobQueue implements JobSchedulerInterface
         );
     }
 
+    /** @param array<string, mixed> $additionalData */
     private function updateStatus(int $jobId, string $status, array $additionalData): void
     {
         $table = $this->resourceConnection->getTableName('kkkonrad_gdpr_job');

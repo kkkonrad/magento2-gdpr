@@ -5,11 +5,12 @@ namespace Kkkonrad\Gdpr\Model\Config\Source;
 
 use Magento\Framework\Data\OptionSourceInterface;
 
-final class CookieDisabledFallback implements OptionSourceInterface
+class CookieDisabledFallback implements OptionSourceInterface
 {
     public const DENY_OPTIONAL = 'deny_optional';
     public const ALLOW_UNMANAGED = 'allow_unmanaged';
 
+    /** @return array<int, array{value:string, label:\Magento\Framework\Phrase}> */
     public function toOptionArray(): array
     {
         return [

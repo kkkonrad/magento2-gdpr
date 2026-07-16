@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Kkkonrad\Gdpr\Domain\Shared\Job;
 
-final class JobStatus
+class JobStatus
 {
     public const QUEUED = 'queued';
     public const CLAIMED = 'claimed';

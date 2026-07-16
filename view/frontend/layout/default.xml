@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <css src="Kkkonrad_Gdpr::css/cmp.css" ifconfig="kkkonrad_gdpr/general/enabled"/>
+        <script src="Kkkonrad_Gdpr::js/cmp.js" ifconfig="kkkonrad_gdpr/general/enabled"/>
+        <script src="Kkkonrad_Gdpr::js/form-consent.js" ifconfig="kkkonrad_gdpr/general/enabled"/>
+    </head>
+    <body>
+        <referenceBlock name="head.additional">
+            <block class="Kkkonrad\Gdpr\Block\Cookie\GoogleConsent"
+                   name="kkkonrad.gdpr.google.consent.default"
+                   before="-"
+                   template="Kkkonrad_Gdpr::cookie/google-consent.phtml"/>
+        </referenceBlock>
+        <referenceContainer name="before.body.end">
+            <block class="Kkkonrad\Gdpr\Block\Cookie\Cmp"
+                   name="kkkonrad.gdpr.cookie.cmp"
+                   template="Kkkonrad_Gdpr::cookie/cmp.phtml"/>
+            <block class="Kkkonrad\Gdpr\Block\Consent\FormConfig"
+                   name="kkkonrad.gdpr.form.consent.config"
+                   template="Kkkonrad_Gdpr::consent/form-config.phtml"/>
+            <block class="Kkkonrad\Gdpr\Block\Cookie\DisabledFallback"
+                   name="kkkonrad.gdpr.cookie.disabled.fallback"
+                   template="Kkkonrad_Gdpr::cookie/disabled-fallback.phtml"/>
+        </referenceContainer>
+    </body>
+</page>

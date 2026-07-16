@@ -5,7 +5,7 @@ namespace Kkkonrad\Gdpr\Domain\DataRights\Request;
 
 use InvalidArgumentException;
 
-final class RequestType
+class RequestType
 {
     public const EXPORT = 'export';
     public const ANONYMIZE = 'anonymize';

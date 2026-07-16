@@ -1,0 +1,14 @@
+<!-- ko if: getConsents().length -->
+<fieldset class="fieldset kkkonrad-gdpr-checkout-consents">
+    <!-- ko foreach: getConsents() -->
+    <div class="field choice">
+        <input type="checkbox" class="checkbox"
+               data-kkkonrad-checkout-consent="1"
+               data-bind="attr: {id: $parent.getInputId($data), required: is_required, 'data-version-id': version_id, 'data-msg-required': $parent.getRequiredMessage()}">
+        <label class="label" data-bind="attr: {for: $parent.getInputId($data)}">
+            <span data-bind="html: content"></span>
+        </label>
+    </div>
+    <!-- /ko -->
+</fieldset>
+<!-- /ko -->

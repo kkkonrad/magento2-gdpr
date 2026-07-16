@@ -1,0 +1,61 @@
+<?php
+declare(strict_types=1);
+
+use Kkkonrad\Gdpr\Block\Privacy\Dashboard;
+use Magento\Framework\Escaper;
+
+/** @var Dashboard $block */
+/** @var Escaper $escaper */
+?>
+<div class="kkkonrad-gdpr-dashboard">
+    <h1><?= $escaper->escapeHtml(__('Privacy and personal data')) ?></h1>
+    <p><?= $escaper->escapeHtml(__('Manage requests concerning the personal data associated with your account.')) ?></p>
+
+    <?php foreach ($block->getActions() as $action): ?>
+        <section class="kkkonrad-gdpr-request-card">
+            <h2><?= $escaper->escapeHtml($action['label']) ?></h2>
+            <p><?= $escaper->escapeHtml($action['description']) ?></p>
+            <form method="post" action="<?= $escaper->escapeUrl($block->getUrl('gdpr/privacy/submit')) ?>">
+                <?= $block->getBlockHtml('formkey') ?>
+                <input type="hidden" name="type" value="<?= $escaper->escapeHtmlAttr($action['type']) ?>">
+                <label>
+                    <span><?= $escaper->escapeHtml(__('Current password')) ?></span>
+                    <input type="password" name="current_password" required autocomplete="current-password">
+                </label>
+                <button type="submit" class="action primary">
+                    <span><?= $escaper->escapeHtml($action['label']) ?></span>
+                </button>
+            </form>
+        </section>
+    <?php endforeach; ?>
+
+    <h2><?= $escaper->escapeHtml(__('Request history')) ?></h2>
+    <div class="table-wrapper">
+        <table class="data table">
+            <thead><tr>
+                <th><?= $escaper->escapeHtml(__('Date')) ?></th>
+                <th><?= $escaper->escapeHtml(__('Type')) ?></th>
+                <th><?= $escaper->escapeHtml(__('Status')) ?></th>
+                <th><?= $escaper->escapeHtml(__('Information')) ?></th>
+                <th><?= $escaper->escapeHtml(__('Action')) ?></th>
+            </tr></thead>
+            <tbody>
+            <?php foreach ($block->getRequests() as $request): ?>
+                <tr>
+                    <td><?= $escaper->escapeHtml($request['created_at']) ?></td>
+                    <td><?= $escaper->escapeHtml(__((string)$request['type'])) ?></td>
+                    <td><?= $escaper->escapeHtml(__((string)$request['status'])) ?></td>
+                    <td><?= $escaper->escapeHtml((string)($request['public_reason'] ?? '')) ?></td>
+                    <td>
+                        <?php if ($block->canDownload($request)): ?>
+                            <a href="<?= $escaper->escapeUrl($block->getUrl('gdpr/privacy/download', ['id' => $request['export_id']])) ?>">
+                                <?= $escaper->escapeHtml(__('Download')) ?>
+                            </a>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+</div>

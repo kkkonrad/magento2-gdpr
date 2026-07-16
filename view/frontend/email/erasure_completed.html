@@ -1,0 +1,7 @@
+<!--@subject {{trans "Your account deletion is complete"}} @-->
+<!--@vars {"var request_id":"Privacy request reference"} @-->
+{{template config_path="design/email/header_template"}}
+<p>{{trans "Your account deletion request has been completed."}}</p>
+<p>{{trans "Request reference: %request_id" request_id=$request_id}}</p>
+<p>{{trans "Some transaction records may remain in anonymized form where required by law."}}</p>
+{{template config_path="design/email/footer_template"}}

@@ -1,0 +1,56 @@
+<?php
+declare(strict_types=1);
+
+use Kkkonrad\Gdpr\Block\Adminhtml\Cookie\Grid;
+use Magento\Framework\Escaper;
+
+/** @var Grid $block */
+/** @var Escaper $escaper */
+$groups = $block->getGroups();
+?>
+<div class="admin__page-section">
+    <h2><?= $escaper->escapeHtml(__('Create cookie group')) ?></h2>
+    <form method="post" action="<?= $escaper->escapeUrl($block->getUrl('*/*/saveGroup')) ?>">
+        <?= $block->getBlockHtml('formkey') ?>
+        <input class="admin__control-text" name="code" required placeholder="code">
+        <select class="admin__control-select" name="type"><option>essential</option><option>functionality</option><option>statistical</option><option>marketing</option><option>custom</option></select>
+        <input class="admin__control-text" name="name" required placeholder="<?= $escaper->escapeHtmlAttr(__('Displayed name')) ?>">
+        <input class="admin__control-text" name="description" placeholder="<?= $escaper->escapeHtmlAttr(__('Description')) ?>">
+        <input class="admin__control-text" type="number" name="priority" value="10" min="0">
+        <input class="admin__control-text" type="number" name="store_id" value="0" min="0">
+        <label><input type="checkbox" name="is_required" value="1"> <?= $escaper->escapeHtml(__('Required')) ?></label>
+        <label><input type="checkbox" name="is_active" value="1" checked> <?= $escaper->escapeHtml(__('Active')) ?></label>
+        <button class="action-primary" type="submit"><?= $escaper->escapeHtml(__('Save group')) ?></button>
+    </form>
+</div>
+<div class="admin__page-section">
+    <h2><?= $escaper->escapeHtml(__('Create cookie definition')) ?></h2>
+    <form method="post" action="<?= $escaper->escapeUrl($block->getUrl('*/*/saveCookie')) ?>">
+        <?= $block->getBlockHtml('formkey') ?>
+        <select class="admin__control-select" name="group_id">
+            <?php foreach ($groups as $group): ?><option value="<?= (int)$group['group_id'] ?>"><?= $escaper->escapeHtml($group['name']) ?></option><?php endforeach; ?>
+        </select>
+        <input class="admin__control-text" name="name" required placeholder="<?= $escaper->escapeHtmlAttr(__('Name')) ?>">
+        <input class="admin__control-text" name="code_pattern" required placeholder="cookie_name*">
+        <select class="admin__control-select" name="storage_type"><option>cookie</option><option>local_storage</option><option>session_storage</option></select>
+        <input class="admin__control-text" type="number" name="lifetime" min="0" placeholder="<?= $escaper->escapeHtmlAttr(__('Lifetime in seconds')) ?>">
+        <input class="admin__control-text" name="description" placeholder="<?= $escaper->escapeHtmlAttr(__('Description')) ?>">
+        <input class="admin__control-text" type="number" name="store_id" value="0" min="0">
+        <label><input type="checkbox" name="is_active" value="1" checked> <?= $escaper->escapeHtml(__('Active')) ?></label>
+        <label><input type="checkbox" name="is_active_in_store" value="1" checked> <?= $escaper->escapeHtml(__('Active in store')) ?></label>
+        <button class="action-primary" type="submit"><?= $escaper->escapeHtml(__('Save cookie')) ?></button>
+    </form>
+</div>
+<div class="admin__data-grid-wrap">
+    <h2><?= $escaper->escapeHtml(__('Active catalog')) ?></h2>
+    <table class="data-grid"><thead><tr><th class="data-grid-th"><?= $escaper->escapeHtml(__('Group')) ?></th><th class="data-grid-th"><?= $escaper->escapeHtml(__('Required')) ?></th><th class="data-grid-th"><?= $escaper->escapeHtml(__('Cookies / storage')) ?></th></tr></thead><tbody>
+    <?php foreach ($groups as $group): ?><tr class="data-row"><td><?= $escaper->escapeHtml($group['name']) ?></td><td><?= $group['is_required'] ? $escaper->escapeHtml(__('Yes')) : $escaper->escapeHtml(__('No')) ?></td><td><ul><?php foreach ($group['cookies'] as $cookie): ?><li><?= $escaper->escapeHtml($cookie['code_pattern']) ?> (<?= $escaper->escapeHtml($cookie['storage_type']) ?>)</li><?php endforeach; ?></ul></td></tr><?php endforeach; ?>
+    </tbody></table>
+</div>
+<div class="admin__data-grid-wrap">
+    <h2><?= $escaper->escapeHtml(__('Rejected cookie diagnostics')) ?></h2>
+    <p><?= $escaper->escapeHtml(__('Only visible cookie names and domains are recorded; values and HttpOnly cookies are never collected.')) ?></p>
+    <table class="data-grid"><thead><tr><th class="data-grid-th"><?= $escaper->escapeHtml(__('Name')) ?></th><th class="data-grid-th"><?= $escaper->escapeHtml(__('Domain')) ?></th><th class="data-grid-th"><?= $escaper->escapeHtml(__('Unknown')) ?></th><th class="data-grid-th"><?= $escaper->escapeHtml(__('Count')) ?></th><th class="data-grid-th"><?= $escaper->escapeHtml(__('Last seen')) ?></th></tr></thead><tbody>
+    <?php foreach ($block->getRejected() as $row): ?><tr class="data-row"><td><?= $escaper->escapeHtml($row['cookie_name']) ?></td><td><?= $escaper->escapeHtml($row['domain']) ?></td><td><?= $row['is_unknown'] ? $escaper->escapeHtml(__('Yes')) : $escaper->escapeHtml(__('No')) ?></td><td><?= (int)$row['occurrence_count'] ?></td><td><?= $escaper->escapeHtml($row['last_seen_at']) ?></td></tr><?php endforeach; ?>
+    </tbody></table>
+</div>
