@@ -7,7 +7,7 @@ interface CookieDecisionRecorderInterface
 {
     /**
      * @param array<string, bool> $choices
-     * @return array{event_id:int, subject_key:string, token:string, choices:array<string, bool>}
+     * @return array{event_id:int, subject_key:string, token:string, choices:array<string, bool>, expires_at:int}
      */
     public function record(
         int $storeId,

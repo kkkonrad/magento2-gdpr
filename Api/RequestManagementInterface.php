@@ -9,7 +9,9 @@ interface RequestManagementInterface
         int $customerId,
         string $type,
         int $storeId,
-        ?string $subjectKey = null
+        ?string $subjectKey = null,
+        string $actorType = 'customer',
+        ?int $actorId = null
     ): int;
 
     /** @param array<string, mixed> $metadata */

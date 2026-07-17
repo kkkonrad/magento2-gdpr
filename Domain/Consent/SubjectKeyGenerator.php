@@ -3,11 +3,17 @@ declare(strict_types=1);
 
 namespace Kkkonrad\Gdpr\Domain\Consent;
 
+use Kkkonrad\Gdpr\Api\RandomIdGeneratorInterface;
+
 class SubjectKeyGenerator
 {
+    public function __construct(private readonly RandomIdGeneratorInterface $randomIdGenerator)
+    {
+    }
+
     public function generate(): string
     {
-        return bin2hex(random_bytes(32));
+        return bin2hex($this->randomIdGenerator->bytes(32));
     }
 
     public function assertValid(string $subjectKey): void

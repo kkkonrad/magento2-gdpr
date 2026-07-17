@@ -1,0 +1,46 @@
+<?php
+declare(strict_types=1);
+
+use Kkkonrad\Gdpr\Block\Adminhtml\Health\Dashboard;
+use Magento\Framework\Escaper;
+
+/** @var Dashboard $block */
+/** @var Escaper $escaper */
+$summary = $block->getSummary();
+?>
+<div class="admin__fieldset-wrapper">
+    <div class="admin__fieldset-wrapper-title"><strong class="title"><?= $escaper->escapeHtml(__('Current queue')) ?></strong></div>
+    <table class="admin__table-secondary">
+        <?php foreach ($summary as $key => $value): ?>
+            <tr><th><?= $escaper->escapeHtml(__($key)) ?></th><td><?= $escaper->escapeHtml((string)($value ?? '—')) ?></td></tr>
+        <?php endforeach; ?>
+    </table>
+</div>
+<div class="admin__data-grid-wrap">
+    <table class="data-grid">
+        <thead><tr>
+            <th class="data-grid-th"><?= $escaper->escapeHtml(__('Started')) ?></th>
+            <th class="data-grid-th"><?= $escaper->escapeHtml(__('Finished')) ?></th>
+            <th class="data-grid-th"><?= $escaper->escapeHtml(__('Job')) ?></th>
+            <th class="data-grid-th"><?= $escaper->escapeHtml(__('Status')) ?></th>
+            <th class="data-grid-th"><?= $escaper->escapeHtml(__('Found')) ?></th>
+            <th class="data-grid-th"><?= $escaper->escapeHtml(__('Processed')) ?></th>
+            <th class="data-grid-th"><?= $escaper->escapeHtml(__('Skipped')) ?></th>
+            <th class="data-grid-th"><?= $escaper->escapeHtml(__('Failed')) ?></th>
+        </tr></thead>
+        <tbody>
+        <?php foreach ($block->getRuns() as $run): ?>
+            <tr class="data-row">
+                <td><?= $escaper->escapeHtml((string)$run['started_at']) ?></td>
+                <td><?= $escaper->escapeHtml((string)($run['finished_at'] ?? '')) ?></td>
+                <td><?= $escaper->escapeHtml((string)$run['job_code']) ?></td>
+                <td><?= $escaper->escapeHtml((string)$run['status']) ?></td>
+                <td><?= (int)$run['found_count'] ?></td>
+                <td><?= (int)$run['processed_count'] ?></td>
+                <td><?= (int)$run['skipped_count'] ?></td>
+                <td><?= (int)$run['failed_count'] ?></td>
+            </tr>
+        <?php endforeach; ?>
+        </tbody>
+    </table>
+</div>

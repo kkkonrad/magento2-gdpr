@@ -5,13 +5,14 @@ namespace Kkkonrad\Gdpr\Test\Unit\Domain\Consent;
 
 use DomainException;
 use Kkkonrad\Gdpr\Domain\Consent\SubjectKeyGenerator;
+use Kkkonrad\Gdpr\Infrastructure\Identity\SecureRandomIdGenerator;
 use PHPUnit\Framework\TestCase;
 
 class SubjectKeyGeneratorTest extends TestCase
 {
     public function testGeneratesNonIdentifyingRandomKey(): void
     {
-        $generator = new SubjectKeyGenerator();
+        $generator = new SubjectKeyGenerator(new SecureRandomIdGenerator());
         $first = $generator->generate();
         $second = $generator->generate();
 
@@ -23,6 +24,6 @@ class SubjectKeyGeneratorTest extends TestCase
     public function testRejectsInvalidKey(): void
     {
         $this->expectException(DomainException::class);
-        (new SubjectKeyGenerator())->assertValid('customer@example.com');
+        (new SubjectKeyGenerator(new SecureRandomIdGenerator()))->assertValid('customer@example.com');
     }
 }

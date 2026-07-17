@@ -5,15 +5,16 @@ namespace Kkkonrad\Gdpr\Application\Cookie;
 
 use Kkkonrad\Gdpr\Api\Cookie\CookiePolicyVersionProviderInterface;
 use Kkkonrad\Gdpr\Api\Cookie\CookieRegistryInterface;
+use Kkkonrad\Gdpr\Api\RandomIdGeneratorInterface;
 use Magento\Framework\App\ResourceConnection;
-use Ramsey\Uuid\Uuid;
 use Throwable;
 
 class CookiePolicyVersionProvider implements CookiePolicyVersionProviderInterface
 {
     public function __construct(
         private readonly ResourceConnection $resourceConnection,
-        private readonly CookieRegistryInterface $cookieRegistry
+        private readonly CookieRegistryInterface $cookieRegistry,
+        private readonly RandomIdGeneratorInterface $randomIdGenerator
     ) {
     }
 
@@ -47,7 +48,7 @@ class CookiePolicyVersionProvider implements CookiePolicyVersionProviderInterfac
             );
             $connection->insert($table, [
                 'store_id' => $storeId,
-                'public_id' => Uuid::uuid4()->toString(),
+                'public_id' => $this->randomIdGenerator->uuid(),
                 'version' => $lastVersion + 1,
                 'configuration_hash' => $configurationHash,
             ]);

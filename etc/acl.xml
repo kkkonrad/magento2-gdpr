@@ -11,6 +11,9 @@
                         <resource id="Kkkonrad_Gdpr::requests_decide" title="Approve or reject requests" sortOrder="20"/>
                         <resource id="Kkkonrad_Gdpr::requests_retry" title="Retry failed requests" sortOrder="30"/>
                         <resource id="Kkkonrad_Gdpr::requests_export" title="Export request list" sortOrder="40"/>
+                        <resource id="Kkkonrad_Gdpr::requests_export_on_behalf"
+                                  title="Create customer data exports"
+                                  sortOrder="50"/>
                     </resource>
                     <resource id="Kkkonrad_Gdpr::consents" title="Consents" sortOrder="30">
                         <resource id="Kkkonrad_Gdpr::consents_view" title="View consents" sortOrder="10"/>
@@ -21,6 +24,7 @@
                         <resource id="Kkkonrad_Gdpr::cookies_manage" title="Manage cookie catalog" sortOrder="20"/>
                     </resource>
                     <resource id="Kkkonrad_Gdpr::audit_view" title="View audit trail" sortOrder="50"/>
+                    <resource id="Kkkonrad_Gdpr::health_view" title="View automation health" sortOrder="60"/>
                 </resource>
             </resource>
         </resources>

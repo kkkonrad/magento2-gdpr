@@ -69,7 +69,10 @@ class ConsentRecorder implements ConsentRecorderInterface
             throw new DomainException('Consent version snapshot is invalid.');
         }
         $location = (string)($snapshot['location'] ?? '');
-        if (!$this->featureManager->isEnabled($this->featureResolver->forLocation($location), $storeId)) {
+        $isCustomerWithdrawal = $source === 'customer_account' && $decision === ConsentDecision::DECLINED;
+        if (!$isCustomerWithdrawal
+            && !$this->featureManager->isEnabled($this->featureResolver->forLocation($location), $storeId)
+        ) {
             throw new DomainException('Consent recording is disabled for this location.');
         }
         if ((bool)($snapshot['is_required'] ?? false) && $decision !== ConsentDecision::ACCEPTED) {

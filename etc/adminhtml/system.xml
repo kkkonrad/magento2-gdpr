@@ -17,6 +17,16 @@
                     <comment>Disabling stops new storefront actions and jobs but preserves configuration and read-only history.</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
+                <field id="configuration_profile" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Apply Initial Policy Profile</label>
+                    <comment>A one-shot preset. It does not enable the main module switch. The global informational profile allows unmanaged optional integrations and requires legal review.</comment>
+                    <source_model>Kkkonrad\Gdpr\Model\Config\Source\ConfigurationProfile</source_model>
+                </field>
+                <field id="configuration_profile_ack" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Profile Application Approved</label>
+                    <comment>Confirm after reviewing the profile with the responsible privacy/legal owner.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
             </group>
 
             <group id="data_rights" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -24,6 +34,11 @@
                 <field id="dashboard_enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Show Privacy Dashboard</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="request_sla_days" translate="label" type="text" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Request SLA (Days)</label>
+                    <backend_model>Kkkonrad\Gdpr\Model\Config\Backend\PositiveInteger</backend_model>
+                    <validate>required-entry validate-digits validate-greater-than-zero</validate>
                 </field>
                 <field id="export_request_enabled" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Allow Personal Data Export Requests</label>
@@ -38,6 +53,22 @@
                     <comment>Orders outside these statuses block customer-initiated anonymization.</comment>
                     <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
                 </field>
+                <field id="anonymization_customer_attribute_codes" translate="label comment" type="text" sortOrder="41" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Custom Customer PII Attributes</label>
+                    <comment>Comma-separated user-defined EAV attribute codes approved for removal during anonymization.</comment>
+                    <backend_model>Kkkonrad\Gdpr\Model\Config\Backend\AttributeCodes</backend_model>
+                </field>
+                <field id="anonymization_address_attribute_codes" translate="label comment" type="text" sortOrder="42" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Custom Address PII Attributes</label>
+                    <comment>Comma-separated user-defined customer-address EAV attribute codes approved for removal.</comment>
+                    <backend_model>Kkkonrad\Gdpr\Model\Config\Backend\AttributeCodes</backend_model>
+                </field>
+                <field id="document_protection_days" translate="label comment" type="text" sortOrder="45" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Sales Document Protection (Days)</label>
+                    <comment>Customer anonymization and erasure are blocked while any order remains inside this period.</comment>
+                    <backend_model>Kkkonrad\Gdpr\Model\Config\Backend\PositiveInteger</backend_model>
+                    <validate>required-entry validate-digits validate-greater-than-zero</validate>
+                </field>
                 <field id="erasure_request_enabled" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Allow Account Erasure Requests</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
@@ -46,10 +77,47 @@
                     <label>Export File Lifetime (Hours)</label>
                     <comment>Generated files are deleted after this period.</comment>
                     <validate>required-entry validate-digits validate-greater-than-zero</validate>
+                    <backend_model>Kkkonrad\Gdpr\Model\Config\Backend\PositiveInteger</backend_model>
                 </field>
                 <field id="batch_size" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Processing Batch Size</label>
                     <validate>required-entry validate-digits validate-greater-than-zero</validate>
+                    <backend_model>Kkkonrad\Gdpr\Model\Config\Backend\PositiveInteger</backend_model>
+                </field>
+                <field id="notification_ttl_hours" translate="label comment" type="text" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Notification Payload Lifetime (Hours)</label>
+                    <comment>Encrypted recipient data is removed after delivery or this lifetime.</comment>
+                    <validate>required-entry validate-digits validate-greater-than-zero</validate>
+                    <backend_model>Kkkonrad\Gdpr\Model\Config\Backend\PositiveInteger</backend_model>
+                </field>
+                <field id="worker_time_budget_seconds" translate="label comment" type="text" sortOrder="90" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Worker Time Budget (Seconds)</label>
+                    <comment>The worker stops claiming new jobs after this time; an active job is allowed to finish.</comment>
+                    <validate>required-entry validate-digits validate-greater-than-zero</validate>
+                    <backend_model>Kkkonrad\Gdpr\Model\Config\Backend\PositiveInteger</backend_model>
+                </field>
+                <field id="worker_memory_limit_mb" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Worker Memory Budget (MB)</label>
+                    <validate>required-entry validate-digits validate-greater-than-zero</validate>
+                    <backend_model>Kkkonrad\Gdpr\Model\Config\Backend\PositiveInteger</backend_model>
+                </field>
+                <field id="job_max_attempts" translate="label comment" type="text" sortOrder="110" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Automatic Job Attempts</label>
+                    <comment>Applies to autonomous jobs. Request-linked and partially completed jobs require audited manual retry.</comment>
+                    <validate>required-entry validate-digits validate-greater-than-zero</validate>
+                    <backend_model>Kkkonrad\Gdpr\Model\Config\Backend\PositiveInteger</backend_model>
+                </field>
+                <field id="job_retry_delay_seconds" translate="label comment" type="text" sortOrder="120" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Initial Retry Delay (Seconds)</label>
+                    <comment>Subsequent attempts use exponential backoff capped at one hour.</comment>
+                    <validate>required-entry validate-digits validate-greater-than-zero</validate>
+                    <backend_model>Kkkonrad\Gdpr\Model\Config\Backend\PositiveInteger</backend_model>
+                </field>
+                <field id="request_rate_limit_per_hour" translate="label comment" type="text" sortOrder="130" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Privacy Request Limit per Hour</label>
+                    <comment>Per customer, request type and store view. The hard maximum is 20.</comment>
+                    <validate>required-entry validate-digits validate-greater-than-zero</validate>
+                    <backend_model>Kkkonrad\Gdpr\Model\Config\Backend\PositiveInteger</backend_model>
                 </field>
             </group>
 
@@ -63,7 +131,14 @@
                 <field id="retention_old_orders_days" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Old Order Age (Days)</label>
                     <validate>required-entry validate-digits validate-greater-than-zero</validate>
+                    <backend_model>Kkkonrad\Gdpr\Model\Config\Backend\PositiveInteger</backend_model>
                     <config_path>kkkonrad_gdpr/data_rights/retention_old_orders_days</config_path>
+                </field>
+                <field id="retention_order_statuses" translate="label comment" type="multiselect" sortOrder="25" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Old Order Statuses</label>
+                    <comment>Only orders in these statuses are candidates for automatic anonymization.</comment>
+                    <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
+                    <config_path>kkkonrad_gdpr/data_rights/retention_order_statuses</config_path>
                 </field>
                 <field id="retention_abandoned_accounts_enabled" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Process Abandoned Accounts</label>
@@ -73,7 +148,31 @@
                 <field id="retention_abandoned_accounts_days" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Abandoned Account Age (Days)</label>
                     <validate>required-entry validate-digits validate-greater-than-zero</validate>
+                    <backend_model>Kkkonrad\Gdpr\Model\Config\Backend\PositiveInteger</backend_model>
                     <config_path>kkkonrad_gdpr/data_rights/retention_abandoned_accounts_days</config_path>
+                </field>
+                <field id="retention_abandoned_action" translate="label comment" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Abandoned Account Action</label>
+                    <comment>Erasure should only be selected after legal approval. Anonymization is the safe default.</comment>
+                    <source_model>Kkkonrad\Gdpr\Model\Config\Source\RetentionAction</source_model>
+                    <config_path>kkkonrad_gdpr/data_rights/retention_abandoned_action</config_path>
+                </field>
+                <field id="retention_abandoned_reference" translate="label" type="select" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Abandoned Account Reference Date</label>
+                    <source_model>Kkkonrad\Gdpr\Model\Config\Source\AbandonedAccountReference</source_model>
+                    <config_path>kkkonrad_gdpr/data_rights/retention_abandoned_reference</config_path>
+                </field>
+                <field id="retention_abandoned_warning_enabled" translate="label comment" type="select" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Warn Before Automated Erasure</label>
+                    <comment>Applies only to the erasure action and should be enabled after privacy/legal approval.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <config_path>kkkonrad_gdpr/data_rights/retention_abandoned_warning_enabled</config_path>
+                </field>
+                <field id="retention_abandoned_warning_days" translate="label" type="text" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Automated Erasure Warning (Days)</label>
+                    <validate>required-entry validate-digits validate-greater-than-zero</validate>
+                    <backend_model>Kkkonrad\Gdpr\Model\Config\Backend\PositiveInteger</backend_model>
+                    <config_path>kkkonrad_gdpr/data_rights/retention_abandoned_warning_days</config_path>
                 </field>
             </group>
 
@@ -99,6 +198,11 @@
                     <label>Checkout</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
+                <field id="link_guest_consents_on_login" translate="label comment" type="select" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Link Guest Consent Evidence on Login</label>
+                    <comment>Disabled by default. Uses a random HttpOnly subject key and an append-only mapping; historical events are not modified.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
             </group>
 
             <group id="cookie" translate="label" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -111,6 +215,12 @@
                     <label>Fallback When Cookie Consent Is Disabled</label>
                     <comment>Allow unmanaged can activate optional integrations without a recorded choice. Obtain legal approval before using it.</comment>
                     <source_model>Kkkonrad\Gdpr\Model\Config\Source\CookieDisabledFallback</source_model>
+                    <backend_model>Kkkonrad\Gdpr\Model\Config\Backend\AllowUnmanagedFallback</backend_model>
+                </field>
+                <field id="disabled_fallback_legal_ack" translate="label comment" type="select" sortOrder="21" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Unmanaged Fallback Legal Approval</label>
+                    <comment>Confirm only after approval by the responsible privacy/legal owner.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
                 <field id="banner_enabled" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Show Cookie Banner</label>
@@ -129,9 +239,41 @@
                     <label>Enable Regional Display Rules</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
+                <field id="geo_country_header" translate="label comment" type="text" sortOrder="61" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Trusted Proxy Country Header</label>
+                    <comment>The web server or CDN must remove client-supplied copies and set this header itself.</comment>
+                    <backend_model>Kkkonrad\Gdpr\Model\Config\Backend\HttpHeaderName</backend_model>
+                </field>
+                <field id="geo_region_header" translate="label comment" type="text" sortOrder="62" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Trusted Proxy Subdivision Header</label>
+                    <comment>Used for ISO 3166-2 subdivisions such as US-CA.</comment>
+                    <backend_model>Kkkonrad\Gdpr\Model\Config\Backend\HttpHeaderName</backend_model>
+                </field>
+                <field id="banner_region_mode" translate="label" type="select" sortOrder="63" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Banner Regional Mode</label>
+                    <source_model>Kkkonrad\Gdpr\Model\Config\Source\BannerRegionMode</source_model>
+                    <backend_model>Kkkonrad\Gdpr\Model\Config\Backend\BannerRegionMode</backend_model>
+                </field>
+                <field id="banner_regions" translate="label comment" type="text" sortOrder="64" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Banner Countries / Regions</label>
+                    <comment>Comma-separated ISO codes, for example PL,DE,US-CA. Resolver failure always uses strict fallback.</comment>
+                    <backend_model>Kkkonrad\Gdpr\Model\Config\Backend\RegionCodes</backend_model>
+                </field>
                 <field id="consent_lifetime_days" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Cookie Consent Lifetime (Days)</label>
                     <validate>required-entry validate-digits validate-greater-than-zero</validate>
+                    <backend_model>Kkkonrad\Gdpr\Model\Config\Backend\PositiveInteger</backend_model>
+                </field>
+                <field id="lock_screen_enabled" translate="label comment" type="select" sortOrder="75" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Cookie Wall / Lock Screen</label>
+                    <comment>Disabled by default. This mode may be unlawful in some contexts and never blocks the privacy-policy link.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <backend_model>Kkkonrad\Gdpr\Model\Config\Backend\LockScreenEnabled</backend_model>
+                </field>
+                <field id="lock_screen_legal_ack" translate="label comment" type="select" sortOrder="76" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Legal Approval Confirmed</label>
+                    <comment>Confirm only after approval by the responsible privacy/legal owner.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
                 <field id="banner_text" translate="label comment" type="textarea" sortOrder="80" showInDefault="1" showInWebsite="0" showInStore="1">
                     <label>Banner Text</label>
@@ -155,6 +297,11 @@
                     <label>Implementation Mode</label>
                     <comment>In Basic mode every optional Google tag must additionally be gated by the Cookie Consent API.</comment>
                     <source_model>Kkkonrad\Gdpr\Model\Config\Source\GoogleConsentImplementationMode</source_model>
+                </field>
+                <field id="default_profile" translate="label comment" type="select" sortOrder="25" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Default Consent Profile</label>
+                    <comment>No profile grants optional storage before the visitor choice. Custom uses the values below.</comment>
+                    <source_model>Kkkonrad\Gdpr\Model\Config\Source\GoogleConsentProfile</source_model>
                 </field>
                 <field id="ad_storage" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Default ad_storage</label>
@@ -188,6 +335,51 @@
                     <label>Consent Debug Logging</label>
                     <comment>Enable only during diagnostics; no personal data is written to the console.</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+            <group id="email" translate="label" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Email Notifications</label>
+                <field id="request_submitted_template" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Request Submitted Template</label>
+                    <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
+                </field>
+                <field id="request_approved_template" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Request Approved Template</label>
+                    <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
+                </field>
+                <field id="request_rejected_template" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Request Rejected Template</label>
+                    <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
+                </field>
+                <field id="request_completed_template" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Request Completed Template</label>
+                    <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
+                </field>
+                <field id="request_failed_template" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Request Failed Template</label>
+                    <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
+                </field>
+                <field id="admin_alerts_enabled" translate="label comment" type="select" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Notify GDPR Administrators</label>
+                    <comment>Sends alerts for new erasure requests and terminal automation failures.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="admin_alert_role_ids" translate="label comment" type="multiselect" sortOrder="70" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Administrator Alert Roles</label>
+                    <comment>Only active administrator users assigned to the selected roles receive alerts.</comment>
+                    <source_model>Kkkonrad\Gdpr\Model\Config\Source\AdminRole</source_model>
+                </field>
+                <field id="admin_erasure_template" translate="label" type="select" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>New Erasure Request Admin Template</label>
+                    <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
+                </field>
+                <field id="admin_failure_template" translate="label" type="select" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Automation Failure Admin Template</label>
+                    <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
+                </field>
+                <field id="request_retention_warning_template" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Automated Erasure Warning Template</label>
+                    <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
                 </field>
             </group>
         </section>

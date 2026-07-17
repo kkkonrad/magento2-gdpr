@@ -1,0 +1,8 @@
+<!--@subject {{trans "New privacy erasure request"}} @-->
+<!--@vars {"var request_id":"Privacy request reference","var request_type":"Request type","var due_at":"SLA due date"} @-->
+{{template config_path="design/email/header_template"}}
+<p>{{trans "A new account erasure request requires administrative review."}}</p>
+<p>{{trans "Request reference: %request_id" request_id=$request_id}}</p>
+<p>{{trans "Request type: %request_type" request_type=$request_type}}</p>
+<p>{{trans "SLA due: %due_at" due_at=$due_at}}</p>
+{{template config_path="design/email/footer_template"}}

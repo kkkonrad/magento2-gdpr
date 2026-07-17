@@ -1,0 +1,8 @@
+<!--@subject {{trans "Privacy automation requires attention"}} @-->
+<!--@vars {"var job_id":"Technical job ID","var job_type":"Job type","var error_code":"Safe error code"} @-->
+{{template config_path="design/email/header_template"}}
+<p>{{trans "A privacy automation job reached a terminal failure and requires review."}}</p>
+<p>{{trans "Job ID: %job_id" job_id=$job_id}}</p>
+<p>{{trans "Job type: %job_type" job_type=$job_type}}</p>
+<p>{{trans "Error code: %error_code" error_code=$error_code}}</p>
+{{template config_path="design/email/footer_template"}}

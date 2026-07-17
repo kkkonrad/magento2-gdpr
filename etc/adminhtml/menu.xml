@@ -13,6 +13,9 @@
         <add id="Kkkonrad_Gdpr::cookies" title="Cookie Catalog" module="Kkkonrad_Gdpr" sortOrder="30"
              parent="Kkkonrad_Gdpr::gdpr" action="kkkonrad_gdpr/cookie/index"
              resource="Kkkonrad_Gdpr::cookies_view"/>
+        <add id="Kkkonrad_Gdpr::health" title="Automation Health" module="Kkkonrad_Gdpr" sortOrder="40"
+             parent="Kkkonrad_Gdpr::gdpr" action="kkkonrad_gdpr/health/index"
+             resource="Kkkonrad_Gdpr::health_view"/>
         <add id="Kkkonrad_Gdpr::configuration" title="Configuration" module="Kkkonrad_Gdpr" sortOrder="100"
              parent="Kkkonrad_Gdpr::gdpr" action="adminhtml/system_config/edit/section/kkkonrad_gdpr"
              resource="Kkkonrad_Gdpr::configuration"/>

@@ -18,16 +18,62 @@ use Magento\Framework\Escaper;
             <form method="post" action="<?= $escaper->escapeUrl($block->getUrl('gdpr/privacy/submit')) ?>">
                 <?= $block->getBlockHtml('formkey') ?>
                 <input type="hidden" name="type" value="<?= $escaper->escapeHtmlAttr($action['type']) ?>">
-                <label>
-                    <span><?= $escaper->escapeHtml(__('Current password')) ?></span>
-                    <input type="password" name="current_password" required autocomplete="current-password">
-                </label>
+                <?php if ($block->requiresPassword()): ?>
+                    <label>
+                        <span><?= $escaper->escapeHtml(__('Current password')) ?></span>
+                        <input type="password" name="current_password" required autocomplete="current-password">
+                    </label>
+                <?php else: ?>
+                    <p><?= $escaper->escapeHtml(__('You will be asked to confirm your identity using the store sign-in provider.')) ?></p>
+                <?php endif; ?>
+                <?php if (in_array($action['type'], ['anonymize', 'erase'], true)): ?>
+                    <label>
+                        <input type="checkbox" name="confirm_irreversible" value="1" required>
+                        <span><?= $escaper->escapeHtml(__('I understand that this operation is irreversible.')) ?></span>
+                    </label>
+                <?php endif; ?>
                 <button type="submit" class="action primary">
                     <span><?= $escaper->escapeHtml($action['label']) ?></span>
                 </button>
             </form>
         </section>
     <?php endforeach; ?>
+
+    <h2><?= $escaper->escapeHtml(__('Consent history')) ?></h2>
+    <div class="table-wrapper">
+        <table class="data table">
+            <thead><tr>
+                <th><?= $escaper->escapeHtml(__('Date')) ?></th>
+                <th><?= $escaper->escapeHtml(__('Purpose')) ?></th>
+                <th><?= $escaper->escapeHtml(__('Location')) ?></th>
+                <th><?= $escaper->escapeHtml(__('Version')) ?></th>
+                <th><?= $escaper->escapeHtml(__('Decision')) ?></th>
+                <th><?= $escaper->escapeHtml(__('Action')) ?></th>
+            </tr></thead>
+            <tbody>
+            <?php foreach ($block->getConsentHistory() as $consent): ?>
+                <tr>
+                    <td><?= $escaper->escapeHtml((string)$consent['occurred_at']) ?></td>
+                    <td><?= $escaper->escapeHtml((string)$consent['purpose']) ?></td>
+                    <td><?= $escaper->escapeHtml(__((string)$consent['location'])) ?></td>
+                    <td><?= $escaper->escapeHtml((string)$consent['version']) ?></td>
+                    <td><?= $escaper->escapeHtml(__((string)$consent['decision'])) ?></td>
+                    <td>
+                        <?php if ((bool)$consent['can_withdraw']): ?>
+                            <form method="post" action="<?= $escaper->escapeUrl($block->getUrl('gdpr/privacy/withdrawConsent')) ?>">
+                                <?= $block->getBlockHtml('formkey') ?>
+                                <input type="hidden" name="definition_id" value="<?= $escaper->escapeHtmlAttr((string)$consent['definition_id']) ?>">
+                                <button type="submit" class="action secondary">
+                                    <span><?= $escaper->escapeHtml(__('Withdraw consent')) ?></span>
+                                </button>
+                            </form>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
 
     <h2><?= $escaper->escapeHtml(__('Request history')) ?></h2>
     <div class="table-wrapper">

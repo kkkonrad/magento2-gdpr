@@ -4,13 +4,15 @@ declare(strict_types=1);
 namespace Kkkonrad\Gdpr\Controller\Privacy;
 
 use Kkkonrad\Gdpr\Application\DataRights\RequestSubmission;
-use Magento\Customer\Api\AccountManagementInterface;
+use Kkkonrad\Gdpr\Api\DataRights\ReauthenticationInterface;
 use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\Redirect;
 use Magento\Framework\Controller\Result\RedirectFactory;
 use Magento\Framework\Message\ManagerInterface;
+use Magento\Framework\Exception\LocalizedException;
+use DomainException;
 use Magento\Store\Model\StoreManagerInterface;
 use Throwable;
 
@@ -18,7 +20,7 @@ class Submit implements HttpPostActionInterface
 {
     public function __construct(
         private readonly CustomerSession $customerSession,
-        private readonly AccountManagementInterface $accountManagement,
+        private readonly ReauthenticationInterface $reauthentication,
         private readonly RequestSubmission $requestSubmission,
         private readonly StoreManagerInterface $storeManager,
         private readonly RequestInterface $request,
@@ -34,22 +36,32 @@ class Submit implements HttpPostActionInterface
             return $redirect->setPath('customer/account/login');
         }
         try {
-            $password = (string)$this->request->getParam('current_password');
-            if ($password === '') {
-                throw new \DomainException('Current password is required.');
+            $password = $this->request->getParam('current_password');
+            $type = (string)$this->request->getParam('type');
+            if (in_array($type, ['anonymize', 'erase'], true)
+                && (string)$this->request->getParam('confirm_irreversible') !== '1'
+            ) {
+                throw new \DomainException(
+                    (string)__('You must confirm that you understand this operation is irreversible.')
+                );
             }
-            $this->accountManagement->authenticate(
-                (string)$this->customerSession->getCustomer()->getEmail(),
-                $password
+            $this->reauthentication->reauthenticate(
+                (int)$this->customerSession->getCustomerId(),
+                (int)$this->storeManager->getStore()->getId(),
+                is_string($password) ? $password : null
             );
             $this->requestSubmission->submit(
                 (int)$this->customerSession->getCustomerId(),
-                (string)$this->request->getParam('type'),
+                $type,
                 (int)$this->storeManager->getStore()->getId()
             );
             $this->messageManager->addSuccessMessage((string)__('Your privacy request has been submitted.'));
-        } catch (Throwable $exception) {
-            $this->messageManager->addErrorMessage($exception->getMessage());
+        } catch (LocalizedException|DomainException $exception) {
+            $this->messageManager->addErrorMessage((string)__($exception->getMessage()));
+        } catch (Throwable) {
+            $this->messageManager->addErrorMessage(
+                (string)__('The privacy request could not be submitted. Please try again later.')
+            );
         }
 
         return $redirect;

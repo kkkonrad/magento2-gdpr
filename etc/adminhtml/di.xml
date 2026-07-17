@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Magento\Config\Model\Config">
+        <plugin name="kkkonrad_gdpr_audit_configuration_save"
+                type="Kkkonrad\Gdpr\Plugin\Adminhtml\AuditConfigurationSavePlugin"
+                sortOrder="100"/>
+        <plugin name="kkkonrad_gdpr_apply_configuration_profile"
+                type="Kkkonrad\Gdpr\Plugin\Adminhtml\ApplyConfigurationProfilePlugin"
+                sortOrder="200"/>
+    </type>
+</config>

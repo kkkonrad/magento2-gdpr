@@ -21,6 +21,15 @@ test.describe('Kkkonrad GDPR cookie consent', () => {
     await expect.poll(() => page.evaluate(() => window.kkkonradConsent.has('marketing'))).toBe(true);
   });
 
+  test('exposes the active Luma or Hyva adapter for compatibility runs', async ({ page }) => {
+    const root = page.locator('[data-kkkonrad-gdpr-cmp]');
+    const adapter = await root.getAttribute('data-frontend-adapter');
+    expect(['luma', 'hyva']).toContain(adapter);
+    if (process.env.GDPR_FRONTEND_ADAPTER) {
+      expect(adapter).toBe(process.env.GDPR_FRONTEND_ADAPTER);
+    }
+  });
+
   test('offers equivalent reject and customize actions with an accessible dialog', async ({ page }) => {
     const consent = new CookieConsentPage(page);
     await consent.customize();

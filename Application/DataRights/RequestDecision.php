@@ -9,11 +9,15 @@ use Kkkonrad\Gdpr\Api\FeatureManagerInterface;
 use Kkkonrad\Gdpr\Api\RequestManagementInterface;
 use Kkkonrad\Gdpr\Application\DataRights\Anonymization\AnonymizationProcessor;
 use Kkkonrad\Gdpr\Application\DataRights\Erasure\ErasureProcessor;
+use Kkkonrad\Gdpr\Application\Notification\RequestNotification;
 use Kkkonrad\Gdpr\Domain\DataRights\Request\RequestStatus;
 use Kkkonrad\Gdpr\Domain\DataRights\Request\RequestType;
 use Kkkonrad\Gdpr\Domain\Shared\Feature\FeatureCode;
+use Kkkonrad\Gdpr\Domain\Shared\Job\JobStatus;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Psr\Log\LoggerInterface;
+use Throwable;
 
 class RequestDecision
 {
@@ -22,7 +26,9 @@ class RequestDecision
         private readonly EligibilityPolicy $eligibilityPolicy,
         private readonly RequestManagementInterface $requestManagement,
         private readonly JobSchedulerInterface $jobScheduler,
-        private readonly FeatureManagerInterface $featureManager
+        private readonly FeatureManagerInterface $featureManager,
+        private readonly RequestNotification $requestNotification,
+        private readonly LoggerInterface $logger
     ) {
     }
 
@@ -54,23 +60,32 @@ class RequestDecision
         if (!$this->featureManager->isEnabled($feature, $storeId)) {
             throw new DomainException('The corresponding GDPR feature is disabled for this store view.');
         }
-        $this->requestManagement->transition(
-            $requestId,
-            RequestStatus::QUEUED,
-            'admin',
-            $adminId,
-            trim($publicReason),
-            trim($adminReason),
-            ['decision' => 'approved']
-        );
-        $this->jobScheduler->schedule(
-            $jobType,
-            $feature,
-            $storeId,
-            ['customer_id' => $customerId],
-            $requestId,
-            $jobType . '-request-' . $requestId
-        );
+        $connection = $this->resourceConnection->getConnection();
+        $connection->beginTransaction();
+        try {
+            $this->requestManagement->transition(
+                $requestId,
+                RequestStatus::QUEUED,
+                'admin',
+                $adminId,
+                trim($publicReason),
+                trim($adminReason),
+                ['decision' => 'approved']
+            );
+            $this->jobScheduler->schedule(
+                $jobType,
+                $feature,
+                $storeId,
+                ['customer_id' => $customerId],
+                $requestId,
+                $jobType . '-request-' . $requestId
+            );
+            $connection->commit();
+        } catch (Throwable $exception) {
+            $connection->rollBack();
+            throw $exception;
+        }
+        $this->notify($requestId, 'approved', ['public_reason' => trim($publicReason)]);
     }
 
     public function reject(
@@ -95,6 +110,7 @@ class RequestDecision
             trim($adminReason),
             ['decision' => 'rejected']
         );
+        $this->notify($requestId, 'rejected', ['public_reason' => trim($publicReason)]);
     }
 
     public function retry(int $requestId, int $adminId, string $adminReason): void
@@ -138,7 +154,7 @@ class RequestDecision
             'finished_at' => null,
         ], [
             'request_id = ?' => $requestId,
-            'status = ?' => 'failed',
+            'status IN (?)' => [JobStatus::FAILED, JobStatus::PARTIALLY_COMPLETED],
         ]);
     }
 
@@ -156,5 +172,19 @@ class RequestDecision
         }
 
         return $row;
+    }
+
+    /** @param array<string, mixed> $variables */
+    private function notify(int $requestId, string $event, array $variables = []): void
+    {
+        try {
+            $this->requestNotification->prepare($requestId, $event, false, $variables);
+        } catch (Throwable) {
+            $this->logger->warning('A GDPR decision was saved but its notification could not be queued.', [
+                'request_id' => $requestId,
+                'notification_event' => $event,
+                'error_code' => 'notification_prepare_failed',
+            ]);
+        }
     }
 }

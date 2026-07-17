@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace Kkkonrad\Gdpr\Api;
 
+use DateTimeInterface;
+
 interface JobSchedulerInterface
 {
     /**
@@ -16,6 +18,7 @@ interface JobSchedulerInterface
         array $payload = [],
         ?int $requestId = null,
         ?string $idempotencyKey = null,
-        array $configSnapshot = []
+        array $configSnapshot = [],
+        ?DateTimeInterface $availableAt = null
     ): int;
 }

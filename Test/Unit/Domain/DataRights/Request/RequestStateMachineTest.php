@@ -9,7 +9,7 @@ use Kkkonrad\Gdpr\Domain\DataRights\Request\RequestStatus;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
-final class RequestStateMachineTest extends TestCase
+class RequestStateMachineTest extends TestCase
 {
     #[DataProvider('validTransitions')]
     public function testAllowsConfiguredTransitions(string $from, string $to): void
@@ -34,6 +34,7 @@ final class RequestStateMachineTest extends TestCase
             [RequestStatus::PROCESSING, RequestStatus::FAILED],
             [RequestStatus::FAILED, RequestStatus::QUEUED],
             [RequestStatus::PARTIALLY_COMPLETED, RequestStatus::QUEUED],
+            [RequestStatus::COMPLETED, RequestStatus::EXPIRED],
         ];
     }
 
@@ -51,6 +52,7 @@ final class RequestStateMachineTest extends TestCase
             [RequestStatus::COMPLETED, RequestStatus::QUEUED],
             [RequestStatus::REJECTED, RequestStatus::QUEUED],
             [RequestStatus::BLOCKED, RequestStatus::VALIDATION],
+            [RequestStatus::EXPIRED, RequestStatus::QUEUED],
             [RequestStatus::QUEUED, RequestStatus::COMPLETED],
             ['unknown', RequestStatus::VALIDATION],
         ];

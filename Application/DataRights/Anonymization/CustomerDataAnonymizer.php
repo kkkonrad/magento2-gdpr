@@ -3,17 +3,32 @@ declare(strict_types=1);
 
 namespace Kkkonrad\Gdpr\Application\DataRights\Anonymization;
 
+use Kkkonrad\Gdpr\Api\ClockInterface;
+use Kkkonrad\Gdpr\Api\DataRights\PersonalDataAnonymizerInterface;
+use Kkkonrad\Gdpr\Api\RandomIdGeneratorInterface;
 use Kkkonrad\Gdpr\Domain\DataRights\Anonymization\PseudonymGenerator;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Encryption\EncryptorInterface;
 
-class CustomerDataAnonymizer
+class CustomerDataAnonymizer implements PersonalDataAnonymizerInterface
 {
     public function __construct(
         private readonly ResourceConnection $resourceConnection,
         private readonly PseudonymGenerator $pseudonymGenerator,
-        private readonly EncryptorInterface $encryptor
+        private readonly EncryptorInterface $encryptor,
+        private readonly ClockInterface $clock,
+        private readonly RandomIdGeneratorInterface $randomIdGenerator
     ) {
+    }
+
+    public function getCode(): string
+    {
+        return 'magento_customer_sales';
+    }
+
+    public function getPriority(): int
+    {
+        return 20;
     }
 
     /** @return array<string, int> */
@@ -127,8 +142,8 @@ class CustomerDataAnonymizer
             'rp_token' => null,
             'rp_token_created_at' => null,
             'confirmation' => null,
-            'password_hash' => $this->encryptor->getHash(bin2hex(random_bytes(32)), true),
-            'session_cutoff' => time(),
+            'password_hash' => $this->encryptor->getHash(bin2hex($this->randomIdGenerator->bytes(32)), true),
+            'session_cutoff' => $this->clock->timestamp(),
         ], ['entity_id = ?' => $customerId]);
 
         return $counts;

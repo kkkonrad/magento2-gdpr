@@ -3,6 +3,16 @@
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
     <preference for="Kkkonrad\Gdpr\Api\FeatureManagerInterface"
                 type="Kkkonrad\Gdpr\Model\Config\FeatureManager"/>
+    <preference for="Kkkonrad\Gdpr\Api\ConfigProviderInterface"
+                type="Kkkonrad\Gdpr\Model\Config\ConfigProvider"/>
+    <preference for="Kkkonrad\Gdpr\Api\ClockInterface"
+                type="Kkkonrad\Gdpr\Infrastructure\Time\SystemClock"/>
+    <preference for="Kkkonrad\Gdpr\Api\RandomIdGeneratorInterface"
+                type="Kkkonrad\Gdpr\Infrastructure\Identity\SecureRandomIdGenerator"/>
+    <preference for="Kkkonrad\Gdpr\Api\CorrelationIdProviderInterface"
+                type="Kkkonrad\Gdpr\Infrastructure\Identity\CorrelationIdProvider"/>
+    <preference for="Kkkonrad\Gdpr\Api\DataRights\ReauthenticationInterface"
+                type="Kkkonrad\Gdpr\Application\DataRights\PasswordReauthentication"/>
     <preference for="Kkkonrad\Gdpr\Api\RequestManagementInterface"
                 type="Kkkonrad\Gdpr\Application\DataRights\Request\RequestManagement"/>
     <preference for="Kkkonrad\Gdpr\Api\JobSchedulerInterface"
@@ -22,19 +32,57 @@
     <preference for="Kkkonrad\Gdpr\Api\Geo\RegionResolverInterface"
                 type="Kkkonrad\Gdpr\Application\Geo\HeaderRegionResolver"/>
 
+    <virtualType name="Kkkonrad\Gdpr\Model\ResourceModel\Request\Grid\Collection"
+                 type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">kkkonrad_gdpr_request</argument>
+            <argument name="resourceModel" xsi:type="string">Kkkonrad\Gdpr\Model\ResourceModel\Request</argument>
+        </arguments>
+    </virtualType>
+    <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
+        <arguments>
+            <argument name="collections" xsi:type="array">
+                <item name="kkkonrad_gdpr_request_listing_data_source" xsi:type="string">Kkkonrad\Gdpr\Model\ResourceModel\Request\Grid\Collection</item>
+            </argument>
+        </arguments>
+    </type>
+
     <type name="Magento\Framework\Console\CommandListInterface">
         <arguments>
             <argument name="commands" xsi:type="array">
                 <item name="kkkonrad_gdpr_run_jobs" xsi:type="object">Kkkonrad\Gdpr\Console\Command\RunJobsCommand</item>
+                <item name="kkkonrad_gdpr_cookie_diff_defaults" xsi:type="object">Kkkonrad\Gdpr\Console\Command\CookieDiffDefaultsCommand</item>
+                <item name="kkkonrad_gdpr_cookie_restore_defaults" xsi:type="object">Kkkonrad\Gdpr\Console\Command\CookieRestoreDefaultsCommand</item>
+                <item name="kkkonrad_gdpr_retry_job" xsi:type="object">Kkkonrad\Gdpr\Console\Command\RetryJobCommand</item>
             </argument>
         </arguments>
     </type>
-    <type name="Magento\Framework\Logger\Monolog">
-        <arguments>
-            <argument name="processors" xsi:type="array">
-                <item name="kkkonrad_gdpr_redaction" xsi:type="object">Kkkonrad\Gdpr\Infrastructure\Logging\RedactionProcessor</item>
-            </argument>
-        </arguments>
+    <type name="Kkkonrad\Gdpr\Application\JobRunner">
+        <arguments><argument name="logger" xsi:type="object">Kkkonrad\Gdpr\Infrastructure\Logging\Logger</argument></arguments>
+    </type>
+    <type name="Kkkonrad\Gdpr\Application\DataRights\RequestSubmission">
+        <arguments><argument name="logger" xsi:type="object">Kkkonrad\Gdpr\Infrastructure\Logging\Logger</argument></arguments>
+    </type>
+    <type name="Kkkonrad\Gdpr\Application\DataRights\AdminExportSubmission">
+        <arguments><argument name="logger" xsi:type="object">Kkkonrad\Gdpr\Infrastructure\Logging\Logger</argument></arguments>
+    </type>
+    <type name="Kkkonrad\Gdpr\Application\DataRights\RequestDecision">
+        <arguments><argument name="logger" xsi:type="object">Kkkonrad\Gdpr\Infrastructure\Logging\Logger</argument></arguments>
+    </type>
+    <type name="Kkkonrad\Gdpr\Application\DataRights\Export\ExportGenerationProcessor">
+        <arguments><argument name="logger" xsi:type="object">Kkkonrad\Gdpr\Infrastructure\Logging\Logger</argument></arguments>
+    </type>
+    <type name="Kkkonrad\Gdpr\Application\DataRights\Anonymization\AnonymizationProcessor">
+        <arguments><argument name="logger" xsi:type="object">Kkkonrad\Gdpr\Infrastructure\Logging\Logger</argument></arguments>
+    </type>
+    <type name="Kkkonrad\Gdpr\Application\DataRights\Erasure\ErasureProcessor">
+        <arguments><argument name="logger" xsi:type="object">Kkkonrad\Gdpr\Infrastructure\Logging\Logger</argument></arguments>
+    </type>
+    <type name="Kkkonrad\Gdpr\Cron\ProcessNotificationOutbox">
+        <arguments><argument name="logger" xsi:type="object">Kkkonrad\Gdpr\Infrastructure\Logging\Logger</argument></arguments>
+    </type>
+    <type name="Kkkonrad\Gdpr\Application\Notification\AdminNotification">
+        <arguments><argument name="logger" xsi:type="object">Kkkonrad\Gdpr\Infrastructure\Logging\Logger</argument></arguments>
     </type>
     <type name="Kkkonrad\Gdpr\Domain\Shared\Job\JobProcessorPool">
         <arguments>
@@ -43,13 +91,40 @@
                 <item name="customer_anonymize" xsi:type="object">Kkkonrad\Gdpr\Application\DataRights\Anonymization\AnonymizationProcessor</item>
                 <item name="customer_erase" xsi:type="object">Kkkonrad\Gdpr\Application\DataRights\Erasure\ErasureProcessor</item>
                 <item name="retention_old_orders" xsi:type="object">Kkkonrad\Gdpr\Application\DataRights\Retention\OldOrdersProcessor</item>
+                <item name="retention_abandoned_accounts" xsi:type="object">Kkkonrad\Gdpr\Application\DataRights\Retention\AbandonedAccountsProcessor</item>
             </argument>
         </arguments>
+    </type>
+    <type name="Kkkonrad\Gdpr\Application\DataRights\Retention\AbandonedAccountsProcessor">
+        <arguments><argument name="logger" xsi:type="object">Kkkonrad\Gdpr\Infrastructure\Logging\Logger</argument></arguments>
     </type>
     <type name="Kkkonrad\Gdpr\Application\DataRights\EligibilityPolicy">
         <arguments>
             <argument name="legalHoldProviders" xsi:type="array">
                 <item name="kkkonrad_rma" xsi:type="object">Kkkonrad\Gdpr\Application\DataRights\LegalHold\RmaLegalHoldProvider</item>
+            </argument>
+        </arguments>
+    </type>
+    <type name="Kkkonrad\Gdpr\Application\DataRights\Anonymization\AnonymizerPool">
+        <arguments>
+            <argument name="processors" xsi:type="array">
+                <item name="sales_documents" xsi:type="object">Kkkonrad\Gdpr\Application\DataRights\Anonymization\SalesDocumentAnonymizer</item>
+                <item name="custom_eav_attributes" xsi:type="object">Kkkonrad\Gdpr\Application\DataRights\Anonymization\CustomEavAnonymizer</item>
+                <item name="magento_customer_sales" xsi:type="object">Kkkonrad\Gdpr\Application\DataRights\Anonymization\CustomerDataAnonymizer</item>
+            </argument>
+        </arguments>
+    </type>
+    <type name="Kkkonrad\Gdpr\Application\DataRights\Export\ExporterPool">
+        <arguments>
+            <argument name="exporters" xsi:type="array">
+                <item name="magento_core" xsi:type="object">Kkkonrad\Gdpr\Application\DataRights\Export\MagentoCoreDataExporter</item>
+            </argument>
+        </arguments>
+    </type>
+    <type name="Kkkonrad\Gdpr\Application\DataRights\Erasure\EraserPool">
+        <arguments>
+            <argument name="erasers" xsi:type="array">
+                <item name="magento_core" xsi:type="object">Kkkonrad\Gdpr\Application\DataRights\Erasure\MagentoCoreDataEraser</item>
             </argument>
         </arguments>
     </type>

@@ -1,0 +1,134 @@
+<?php
+declare(strict_types=1);
+
+use Kkkonrad\Gdpr\Block\Adminhtml\Request\Details;
+use Kkkonrad\Gdpr\Domain\DataRights\Request\RequestStatus;
+use Magento\Framework\Escaper;
+
+/** @var Details $block */
+/** @var Escaper $escaper */
+$request = $block->getGdprRequest();
+?>
+<div class="admin__fieldset-wrapper">
+    <div class="admin__fieldset-wrapper-title">
+        <strong class="title"><?= $escaper->escapeHtml(__('Request %1', $request['public_id'])) ?></strong>
+    </div>
+    <table class="admin__table-secondary">
+        <?php foreach ([
+            'customer_id' => __('Customer ID'),
+            'subject_key' => __('Subject reference'),
+            'type' => __('Type'),
+            'status' => __('Status'),
+            'store_id' => __('Store view ID'),
+            'public_reason' => __('Customer-safe information'),
+            'due_at' => __('Due at'),
+            'created_at' => __('Created'),
+            'updated_at' => __('Updated'),
+            'completed_at' => __('Completed'),
+        ] as $key => $label): ?>
+            <tr>
+                <th><?= $escaper->escapeHtml($label) ?></th>
+                <td><?= $escaper->escapeHtml((string)($request[$key] ?? '')) ?></td>
+            </tr>
+        <?php endforeach; ?>
+    </table>
+</div>
+
+<?php if ($request['status'] === RequestStatus::PENDING_APPROVAL && $block->canDecide()): ?>
+    <div class="admin__fieldset-wrapper">
+        <div class="admin__fieldset-wrapper-title"><strong class="title"><?= $escaper->escapeHtml(__('Decision')) ?></strong></div>
+        <form method="post" action="<?= $escaper->escapeUrl($block->getUrl('*/*/approve')) ?>">
+            <?= $block->getBlockHtml('formkey') ?>
+            <input type="hidden" name="request_id" value="<?= (int)$request['request_id'] ?>">
+            <input class="admin__control-text" name="public_reason" required placeholder="<?= $escaper->escapeHtmlAttr(__('Customer-safe reason')) ?>">
+            <input class="admin__control-text" name="admin_reason" required placeholder="<?= $escaper->escapeHtmlAttr(__('Administrative reason')) ?>">
+            <button class="action-primary" type="submit" data-mage-init='<?= /* @noEscape */ json_encode([
+                'Kkkonrad_Gdpr/js/confirm-submit' => [
+                    'title' => (string)__('Confirm GDPR request approval'),
+                    'content' => (string)__('The approved destructive request will be queued for processing.'),
+                ],
+            ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>'><?= $escaper->escapeHtml(__('Approve')) ?></button>
+        </form>
+        <form method="post" action="<?= $escaper->escapeUrl($block->getUrl('*/*/reject')) ?>">
+            <?= $block->getBlockHtml('formkey') ?>
+            <input type="hidden" name="request_id" value="<?= (int)$request['request_id'] ?>">
+            <input class="admin__control-text" name="public_reason" required placeholder="<?= $escaper->escapeHtmlAttr(__('Customer-safe reason')) ?>">
+            <input class="admin__control-text" name="admin_reason" required placeholder="<?= $escaper->escapeHtmlAttr(__('Administrative reason')) ?>">
+            <button type="submit" data-mage-init='<?= /* @noEscape */ json_encode([
+                'Kkkonrad_Gdpr/js/confirm-submit' => [
+                    'title' => (string)__('Confirm GDPR request rejection'),
+                    'content' => (string)__('The decision is append-only and will be visible in the request timeline.'),
+                ],
+            ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>'><?= $escaper->escapeHtml(__('Reject')) ?></button>
+        </form>
+    </div>
+<?php elseif ($block->canRetry() && in_array($request['status'], [RequestStatus::FAILED, RequestStatus::PARTIALLY_COMPLETED], true)): ?>
+    <div class="admin__fieldset-wrapper">
+        <div class="admin__fieldset-wrapper-title"><strong class="title"><?= $escaper->escapeHtml(__('Audited retry')) ?></strong></div>
+        <form method="post" action="<?= $escaper->escapeUrl($block->getUrl('*/*/retry')) ?>">
+            <?= $block->getBlockHtml('formkey') ?>
+            <input type="hidden" name="request_id" value="<?= (int)$request['request_id'] ?>">
+            <input class="admin__control-text" name="admin_reason" required placeholder="<?= $escaper->escapeHtmlAttr(__('Administrative retry reason')) ?>">
+            <button type="submit" data-mage-init='<?= /* @noEscape */ json_encode([
+                'Kkkonrad_Gdpr/js/confirm-submit' => [
+                    'title' => (string)__('Confirm audited retry'),
+                    'content' => (string)__('Completed checkpoints are preserved and only retryable work will be queued.'),
+                ],
+            ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>'><?= $escaper->escapeHtml(__('Retry')) ?></button>
+        </form>
+    </div>
+<?php endif; ?>
+
+<div class="admin__fieldset-wrapper">
+    <div class="admin__fieldset-wrapper-title"><strong class="title"><?= $escaper->escapeHtml(__('Timeline')) ?></strong></div>
+    <table class="data-grid">
+        <thead><tr>
+            <th class="data-grid-th"><?= $escaper->escapeHtml(__('Date')) ?></th>
+            <th class="data-grid-th"><?= $escaper->escapeHtml(__('Event')) ?></th>
+            <th class="data-grid-th"><?= $escaper->escapeHtml(__('Transition')) ?></th>
+            <th class="data-grid-th"><?= $escaper->escapeHtml(__('Actor')) ?></th>
+            <th class="data-grid-th"><?= $escaper->escapeHtml(__('Correlation ID')) ?></th>
+            <th class="data-grid-th"><?= $escaper->escapeHtml(__('Safe metadata')) ?></th>
+        </tr></thead>
+        <tbody>
+        <?php foreach ($block->getTimeline() as $event): ?>
+            <tr class="data-row">
+                <td><?= $escaper->escapeHtml((string)$event['created_at']) ?></td>
+                <td><?= $escaper->escapeHtml((string)$event['event_type']) ?></td>
+                <td><?= $escaper->escapeHtml((string)($event['status_from'] ?? '') . ' → ' . (string)($event['status_to'] ?? '')) ?></td>
+                <td><?= $escaper->escapeHtml((string)$event['actor_type'] . ':' . (string)($event['actor_id'] ?? '')) ?></td>
+                <td><?= $escaper->escapeHtml((string)($event['correlation_id'] ?? '')) ?></td>
+                <td><code><?= $escaper->escapeHtml((string)($event['metadata_json'] ?? '')) ?></code></td>
+            </tr>
+        <?php endforeach; ?>
+        </tbody>
+    </table>
+</div>
+
+<div class="admin__fieldset-wrapper">
+    <div class="admin__fieldset-wrapper-title"><strong class="title"><?= $escaper->escapeHtml(__('Jobs')) ?></strong></div>
+    <table class="data-grid">
+        <thead><tr>
+            <th class="data-grid-th"><?= $escaper->escapeHtml(__('ID')) ?></th>
+            <th class="data-grid-th"><?= $escaper->escapeHtml(__('Type')) ?></th>
+            <th class="data-grid-th"><?= $escaper->escapeHtml(__('Status')) ?></th>
+            <th class="data-grid-th"><?= $escaper->escapeHtml(__('Checkpoint')) ?></th>
+            <th class="data-grid-th"><?= $escaper->escapeHtml(__('Attempts')) ?></th>
+            <th class="data-grid-th"><?= $escaper->escapeHtml(__('Error code')) ?></th>
+        </tr></thead>
+        <tbody>
+        <?php foreach ($block->getJobs() as $job): ?>
+            <tr class="data-row">
+                <td><?= $escaper->escapeHtml((string)$job['public_id']) ?></td>
+                <td><?= $escaper->escapeHtml((string)$job['type']) ?></td>
+                <td><?= $escaper->escapeHtml((string)$job['status']) ?></td>
+                <td><?= $escaper->escapeHtml((string)($job['checkpoint'] ?? '')) ?></td>
+                <td><?= (int)$job['attempt_count'] ?></td>
+                <td><?= $escaper->escapeHtml((string)($job['error_code'] ?? '')) ?></td>
+            </tr>
+        <?php endforeach; ?>
+        </tbody>
+    </table>
+</div>
+
+<p><a href="<?= $escaper->escapeUrl($block->getUrl('*/*/index')) ?>"><?= $escaper->escapeHtml(__('Back to requests')) ?></a></p>

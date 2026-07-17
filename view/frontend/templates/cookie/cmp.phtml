@@ -12,27 +12,33 @@ if (!$block->isEnabled()) {
 ?>
 <div class="kkkonrad-gdpr-cmp"
      data-kkkonrad-gdpr-cmp
+     data-frontend-adapter="<?= $escaper->escapeHtmlAttr((string)($block->getData('frontend_adapter') ?: 'luma')) ?>"
      data-config="<?= $escaper->escapeHtmlAttr($block->getJsonConfig()) ?>"
      hidden>
+    <div class="kkkonrad-gdpr-lock-overlay" data-role="lock-overlay" hidden></div>
     <section class="kkkonrad-gdpr-banner" data-role="banner" aria-label="<?= $escaper->escapeHtmlAttr(__('Cookie consent')) ?>">
         <p data-role="banner-text"></p>
+        <p><a data-role="privacy-link"></a></p>
         <div class="kkkonrad-gdpr-actions">
             <button type="button" data-action="accept-all"></button>
             <button type="button" data-action="reject-optional"></button>
             <button type="button" data-action="customize"></button>
         </div>
     </section>
-    <dialog class="kkkonrad-gdpr-dialog" data-role="dialog" aria-describedby="kkkonrad-gdpr-modal-description">
+    <dialog class="kkkonrad-gdpr-dialog" data-role="dialog"
+            aria-modal="true"
+            aria-labelledby="kkkonrad-gdpr-modal-title"
+            aria-describedby="kkkonrad-gdpr-modal-description">
         <form method="dialog">
             <button type="submit" class="kkkonrad-gdpr-close" data-action="close">
                 <span class="screen-reader-text"></span><span aria-hidden="true">×</span>
             </button>
         </form>
-        <h2 data-role="modal-title"></h2>
+        <h2 id="kkkonrad-gdpr-modal-title" data-role="modal-title"></h2>
         <p id="kkkonrad-gdpr-modal-description" data-role="modal-text"></p>
         <div data-role="groups"></div>
         <button type="button" data-action="save"></button>
     </dialog>
     <button type="button" class="kkkonrad-gdpr-settings" data-action="open-settings"></button>
-    <p class="kkkonrad-gdpr-live" data-role="live" aria-live="polite"></p>
+    <p class="kkkonrad-gdpr-live" data-role="live" role="status" aria-live="polite"></p>
 </div>

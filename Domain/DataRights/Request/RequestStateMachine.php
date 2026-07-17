@@ -23,6 +23,7 @@ class RequestStateMachine
         ],
         RequestStatus::FAILED => [RequestStatus::QUEUED],
         RequestStatus::PARTIALLY_COMPLETED => [RequestStatus::QUEUED],
+        RequestStatus::COMPLETED => [RequestStatus::EXPIRED],
     ];
 
     public function assertCanTransition(string $currentStatus, string $targetStatus): void

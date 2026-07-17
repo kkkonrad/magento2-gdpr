@@ -50,7 +50,17 @@ $groups = $block->getGroups();
 <div class="admin__data-grid-wrap">
     <h2><?= $escaper->escapeHtml(__('Rejected cookie diagnostics')) ?></h2>
     <p><?= $escaper->escapeHtml(__('Only visible cookie names and domains are recorded; values and HttpOnly cookies are never collected.')) ?></p>
-    <table class="data-grid"><thead><tr><th class="data-grid-th"><?= $escaper->escapeHtml(__('Name')) ?></th><th class="data-grid-th"><?= $escaper->escapeHtml(__('Domain')) ?></th><th class="data-grid-th"><?= $escaper->escapeHtml(__('Unknown')) ?></th><th class="data-grid-th"><?= $escaper->escapeHtml(__('Count')) ?></th><th class="data-grid-th"><?= $escaper->escapeHtml(__('Last seen')) ?></th></tr></thead><tbody>
-    <?php foreach ($block->getRejected() as $row): ?><tr class="data-row"><td><?= $escaper->escapeHtml($row['cookie_name']) ?></td><td><?= $escaper->escapeHtml($row['domain']) ?></td><td><?= $row['is_unknown'] ? $escaper->escapeHtml(__('Yes')) : $escaper->escapeHtml(__('No')) ?></td><td><?= (int)$row['occurrence_count'] ?></td><td><?= $escaper->escapeHtml($row['last_seen_at']) ?></td></tr><?php endforeach; ?>
+    <form method="get">
+        <input class="admin__control-text" name="rejected_name" value="<?= $escaper->escapeHtmlAttr((string)$block->getRequest()->getParam('rejected_name')) ?>" placeholder="<?= $escaper->escapeHtmlAttr(__('Cookie name')) ?>">
+        <input class="admin__control-text" name="rejected_domain" value="<?= $escaper->escapeHtmlAttr((string)$block->getRequest()->getParam('rejected_domain')) ?>" placeholder="<?= $escaper->escapeHtmlAttr(__('Domain')) ?>">
+        <select class="admin__control-select" name="rejected_unknown">
+            <option value=""><?= $escaper->escapeHtml(__('All statuses')) ?></option>
+            <option value="1"<?= (string)$block->getRequest()->getParam('rejected_unknown') === '1' ? ' selected' : '' ?>><?= $escaper->escapeHtml(__('Unknown only')) ?></option>
+            <option value="0"<?= (string)$block->getRequest()->getParam('rejected_unknown') === '0' ? ' selected' : '' ?>><?= $escaper->escapeHtml(__('Known only')) ?></option>
+        </select>
+        <button type="submit"><?= $escaper->escapeHtml(__('Filter')) ?></button>
+    </form>
+    <table class="data-grid"><thead><tr><th class="data-grid-th"><?= $escaper->escapeHtml(__('Name')) ?></th><th class="data-grid-th"><?= $escaper->escapeHtml(__('Domain')) ?></th><th class="data-grid-th"><?= $escaper->escapeHtml(__('Unknown')) ?></th><th class="data-grid-th"><?= $escaper->escapeHtml(__('Count')) ?></th><th class="data-grid-th"><?= $escaper->escapeHtml(__('Last seen')) ?></th><th class="data-grid-th"><?= $escaper->escapeHtml(__('Action')) ?></th></tr></thead><tbody>
+    <?php foreach ($block->getRejected() as $row): ?><tr class="data-row"><td><?= $escaper->escapeHtml($row['cookie_name']) ?></td><td><?= $escaper->escapeHtml($row['domain']) ?></td><td><?= $row['is_unknown'] ? $escaper->escapeHtml(__('Yes')) : $escaper->escapeHtml(__('No')) ?></td><td><?= (int)$row['occurrence_count'] ?></td><td><?= $escaper->escapeHtml($row['last_seen_at']) ?></td><td><form method="post" action="<?= $escaper->escapeUrl($block->getUrl('*/*/createFromRejected')) ?>"><?= $block->getBlockHtml('formkey') ?><input type="hidden" name="rejected_id" value="<?= (int)$row['rejected_id'] ?>"><select name="group_id" class="admin__control-select"><?php foreach ($groups as $group): ?><option value="<?= (int)$group['group_id'] ?>"><?= $escaper->escapeHtml($group['name']) ?></option><?php endforeach; ?></select><button type="submit"><?= $escaper->escapeHtml(__('Create inactive draft')) ?></button></form></td></tr><?php endforeach; ?>
     </tbody></table>
 </div>

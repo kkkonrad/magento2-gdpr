@@ -2,6 +2,9 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
     <group id="default">
+        <job name="kkkonrad_gdpr_process_notifications" instance="Kkkonrad\Gdpr\Cron\ProcessNotificationOutbox" method="execute">
+            <schedule>*/5 * * * *</schedule>
+        </job>
         <job name="kkkonrad_gdpr_process_jobs" instance="Kkkonrad\Gdpr\Cron\ProcessJobs" method="execute">
             <schedule>* * * * *</schedule>
         </job>

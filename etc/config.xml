@@ -5,18 +5,35 @@
         <kkkonrad_gdpr>
             <general>
                 <enabled>0</enabled>
+                <configuration_profile>none</configuration_profile>
+                <configuration_profile_ack>0</configuration_profile_ack>
             </general>
             <data_rights>
                 <dashboard_enabled>1</dashboard_enabled>
+                <request_sla_days>30</request_sla_days>
                 <export_request_enabled>0</export_request_enabled>
                 <anonymization_request_enabled>0</anonymization_request_enabled>
+                <anonymization_customer_attribute_codes></anonymization_customer_attribute_codes>
+                <anonymization_address_attribute_codes></anonymization_address_attribute_codes>
+                <document_protection_days>1825</document_protection_days>
                 <erasure_request_enabled>0</erasure_request_enabled>
                 <retention_old_orders_enabled>0</retention_old_orders_enabled>
                 <retention_old_orders_days>1825</retention_old_orders_days>
+                <retention_order_statuses>complete,closed,canceled</retention_order_statuses>
                 <retention_abandoned_accounts_enabled>0</retention_abandoned_accounts_enabled>
                 <retention_abandoned_accounts_days>1825</retention_abandoned_accounts_days>
+                <retention_abandoned_action>anonymize</retention_abandoned_action>
+                <retention_abandoned_reference>last_order_or_created</retention_abandoned_reference>
+                <retention_abandoned_warning_enabled>0</retention_abandoned_warning_enabled>
+                <retention_abandoned_warning_days>30</retention_abandoned_warning_days>
                 <export_ttl_hours>24</export_ttl_hours>
+                <notification_ttl_hours>48</notification_ttl_hours>
                 <batch_size>100</batch_size>
+                <worker_time_budget_seconds>50</worker_time_budget_seconds>
+                <worker_memory_limit_mb>512</worker_memory_limit_mb>
+                <job_max_attempts>3</job_max_attempts>
+                <job_retry_delay_seconds>60</job_retry_delay_seconds>
+                <request_rate_limit_per_hour>5</request_rate_limit_per_hour>
             </data_rights>
             <consent>
                 <enabled>0</enabled>
@@ -24,19 +41,28 @@
                 <newsletter_enabled>0</newsletter_enabled>
                 <contact_enabled>0</contact_enabled>
                 <checkout_enabled>0</checkout_enabled>
+                <link_guest_consents_on_login>0</link_guest_consents_on_login>
             </consent>
             <cookie>
                 <enabled>0</enabled>
                 <disabled_fallback>deny_optional</disabled_fallback>
+                <disabled_fallback_legal_ack>0</disabled_fallback_legal_ack>
                 <banner_enabled>1</banner_enabled>
                 <rejected_tracking_enabled>0</rejected_tracking_enabled>
                 <track_unknown_only>1</track_unknown_only>
                 <geolocation_enabled>0</geolocation_enabled>
+                <geo_country_header>CF-IPCountry</geo_country_header>
+                <geo_region_header>CF-Region-Code</geo_region_header>
+                <banner_region_mode>global</banner_region_mode>
+                <banner_regions></banner_regions>
+                <lock_screen_enabled>0</lock_screen_enabled>
+                <lock_screen_legal_ack>0</lock_screen_legal_ack>
                 <consent_lifetime_days>180</consent_lifetime_days>
             </cookie>
             <google_consent>
                 <enabled>0</enabled>
                 <implementation_mode>advanced</implementation_mode>
+                <default_profile>essential</default_profile>
                 <ad_storage>denied</ad_storage>
                 <analytics_storage>denied</analytics_storage>
                 <functionality_storage>denied</functionality_storage>
@@ -46,6 +72,18 @@
                 <ad_personalization>denied</ad_personalization>
                 <debug_enabled>0</debug_enabled>
             </google_consent>
+            <email>
+                <request_submitted_template>kkkonrad_gdpr_request_submitted</request_submitted_template>
+                <request_approved_template>kkkonrad_gdpr_request_approved</request_approved_template>
+                <request_rejected_template>kkkonrad_gdpr_request_rejected</request_rejected_template>
+                <request_completed_template>kkkonrad_gdpr_request_completed</request_completed_template>
+                <request_failed_template>kkkonrad_gdpr_request_failed</request_failed_template>
+                <admin_alerts_enabled>0</admin_alerts_enabled>
+                <admin_alert_role_ids></admin_alert_role_ids>
+                <admin_erasure_template>kkkonrad_gdpr_admin_erasure</admin_erasure_template>
+                <admin_failure_template>kkkonrad_gdpr_admin_failure</admin_failure_template>
+                <request_retention_warning_template>kkkonrad_gdpr_retention_warning</request_retention_warning_template>
+            </email>
         </kkkonrad_gdpr>
     </default>
 </config>

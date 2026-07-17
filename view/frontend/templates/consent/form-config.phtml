@@ -8,5 +8,6 @@ use Magento\Framework\Escaper;
 /** @var Escaper $escaper */
 ?>
 <div data-kkkonrad-gdpr-form-consents
+     data-frontend-adapter="<?= $escaper->escapeHtmlAttr((string)($block->getData('frontend_adapter') ?: 'luma')) ?>"
      data-config="<?= $escaper->escapeHtmlAttr($block->getJsonConfig()) ?>"
      hidden></div>

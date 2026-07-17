@@ -1,0 +1,7 @@
+<!--@subject {{trans "Your privacy request was approved"}} @-->
+<!--@vars {"var request_id":"Privacy request reference","var public_reason":"Customer-safe reason"} @-->
+{{template config_path="design/email/header_template"}}
+<p>{{trans "Your privacy request was approved and queued for processing."}}</p>
+<p>{{trans "Request reference: %request_id" request_id=$request_id}}</p>
+<p>{{var public_reason|escape}}</p>
+{{template config_path="design/email/footer_template"}}

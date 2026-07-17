@@ -1,0 +1,6 @@
+<!--@subject {{trans "Your privacy request needs review"}} @-->
+<!--@vars {"var request_id":"Privacy request reference"} @-->
+{{template config_path="design/email/header_template"}}
+<p>{{trans "We could not complete your privacy request automatically. Our team needs to review it."}}</p>
+<p>{{trans "Request reference: %request_id" request_id=$request_id}}</p>
+{{template config_path="design/email/footer_template"}}

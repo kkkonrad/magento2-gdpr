@@ -1,0 +1,7 @@
+<!--@subject {{trans "We received your privacy request"}} @-->
+<!--@vars {"var request_id":"Privacy request reference","var request_type":"Request type"} @-->
+{{template config_path="design/email/header_template"}}
+<p>{{trans "We received your privacy request."}}</p>
+<p>{{trans "Request reference: %request_id" request_id=$request_id}}</p>
+<p>{{trans "Request type: %request_type" request_type=$request_type}}</p>
+{{template config_path="design/email/footer_template"}}

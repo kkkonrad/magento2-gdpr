@@ -3,29 +3,26 @@ declare(strict_types=1);
 
 namespace Kkkonrad\Gdpr\Cron;
 
+use Kkkonrad\Gdpr\Api\ClockInterface;
 use Kkkonrad\Gdpr\Api\FeatureManagerInterface;
 use Kkkonrad\Gdpr\Api\JobSchedulerInterface;
-use Kkkonrad\Gdpr\Api\RequestManagementInterface;
-use Kkkonrad\Gdpr\Application\DataRights\Anonymization\AnonymizationProcessor;
+use Kkkonrad\Gdpr\Application\DataRights\Retention\AbandonedAccountsProcessor;
 use Kkkonrad\Gdpr\Application\DataRights\Retention\OldOrdersProcessor;
-use Kkkonrad\Gdpr\Domain\DataRights\Request\RequestStatus;
-use Kkkonrad\Gdpr\Domain\DataRights\Request\RequestType;
 use Kkkonrad\Gdpr\Domain\Shared\Feature\FeatureCode;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
-use Throwable;
 
 class ScheduleRetention
 {
     public function __construct(
         private readonly FeatureManagerInterface $featureManager,
         private readonly JobSchedulerInterface $jobScheduler,
-        private readonly RequestManagementInterface $requestManagement,
         private readonly ScopeConfigInterface $scopeConfig,
         private readonly StoreManagerInterface $storeManager,
-        private readonly ResourceConnection $resourceConnection
+        private readonly ResourceConnection $resourceConnection,
+        private readonly ClockInterface $clock
     ) {
     }
 
@@ -39,34 +36,40 @@ class ScheduleRetention
                 $storeId
             ));
             if ($this->featureManager->isEnabled(FeatureCode::RETENTION_OLD_ORDERS, $storeId)) {
-                $days = max(1, (int)$this->scopeConfig->getValue(
-                    'kkkonrad_gdpr/data_rights/retention_old_orders_days',
-                    ScopeInterface::SCOPE_STORE,
-                    $storeId
-                ));
-                $configuredStatuses = (string)$this->scopeConfig->getValue(
-                    'kkkonrad_gdpr/data_rights/anonymization_order_statuses',
-                    ScopeInterface::SCOPE_STORE,
-                    $storeId
-                );
-                $statuses = array_values(array_filter(array_map('trim', explode(',', $configuredStatuses))));
-                $this->jobScheduler->schedule(
-                    OldOrdersProcessor::TYPE,
-                    FeatureCode::RETENTION_OLD_ORDERS,
-                    $storeId,
-                    [
-                        'cutoff' => gmdate('Y-m-d H:i:s', time() - ($days * 86400)),
-                        'statuses' => $statuses ?: ['complete', 'closed', 'canceled'],
-                        'batch_size' => $batchSize,
-                    ],
-                    null,
-                    'retention-old-orders-' . $storeId . '-' . gmdate('Y-m-d')
-                );
+                $this->scheduleOldOrders($storeId, $batchSize);
             }
             if ($this->featureManager->isEnabled(FeatureCode::RETENTION_ABANDONED_ACCOUNTS, $storeId)) {
                 $this->scheduleAbandonedAccounts($storeId, $batchSize);
             }
         }
+    }
+
+    private function scheduleOldOrders(int $storeId, int $batchSize): void
+    {
+        $days = max(1, (int)$this->scopeConfig->getValue(
+            'kkkonrad_gdpr/data_rights/retention_old_orders_days',
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        ));
+        $configuredStatuses = (string)$this->scopeConfig->getValue(
+            'kkkonrad_gdpr/data_rights/retention_order_statuses',
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+        $statuses = array_values(array_filter(array_map('trim', explode(',', $configuredStatuses))));
+        $this->jobScheduler->schedule(
+            OldOrdersProcessor::TYPE,
+            FeatureCode::RETENTION_OLD_ORDERS,
+            $storeId,
+            [
+                'cutoff' => $this->clock->now()->modify('-' . $days . ' days')->format('Y-m-d H:i:s'),
+                'statuses' => $statuses ?: ['complete', 'closed', 'canceled'],
+                'batch_size' => $batchSize,
+                'cursor' => $this->cursor(OldOrdersProcessor::TYPE, $storeId),
+            ],
+            null,
+            'retention-old-orders-' . $storeId . '-' . $this->clock->now()->format('Y-m-d')
+        );
     }
 
     private function scheduleAbandonedAccounts(int $storeId, int $batchSize): void
@@ -76,33 +79,62 @@ class ScheduleRetention
             ScopeInterface::SCOPE_STORE,
             $storeId
         ));
-        $customerTable = $this->resourceConnection->getTableName('customer_entity');
-        $customerIds = array_map('intval', $this->resourceConnection->getConnection()->fetchCol(
+        $action = (string)$this->scopeConfig->getValue(
+            'kkkonrad_gdpr/data_rights/retention_abandoned_action',
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+        $action = $action === 'erase' ? 'erase' : 'anonymize';
+        $reference = (string)$this->scopeConfig->getValue(
+            'kkkonrad_gdpr/data_rights/retention_abandoned_reference',
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+        $warningEnabled = $action === 'erase' && $this->scopeConfig->isSetFlag(
+            'kkkonrad_gdpr/data_rights/retention_abandoned_warning_enabled',
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+        $warningDays = $warningEnabled ? max(1, min(365, (int)$this->scopeConfig->getValue(
+            'kkkonrad_gdpr/data_rights/retention_abandoned_warning_days',
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        ))) : 0;
+        $this->jobScheduler->schedule(
+            AbandonedAccountsProcessor::TYPE,
+            FeatureCode::RETENTION_ABANDONED_ACCOUNTS,
+            $storeId,
+            [
+                'cutoff' => $this->clock->now()->modify('-' . $days . ' days')->format('Y-m-d H:i:s'),
+                'action' => $action,
+                'reference' => $reference,
+                'batch_size' => $batchSize,
+                'cursor' => $this->cursor(AbandonedAccountsProcessor::TYPE, $storeId),
+                'warning_days' => $warningDays,
+            ],
+            null,
+            'retention-abandoned-accounts-' . $storeId . '-' . $this->clock->now()->format('Y-m-d')
+        );
+    }
+
+    private function cursor(string $type, int $storeId): int
+    {
+        $jobTable = $this->resourceConnection->getTableName('kkkonrad_gdpr_job');
+        $checkpoint = $this->resourceConnection->getConnection()->fetchOne(
             $this->resourceConnection->getConnection()->select()
-                ->from($customerTable, ['entity_id'])
+                ->from($jobTable, ['checkpoint'])
+                ->where('type = ?', $type)
                 ->where('store_id = ?', $storeId)
-                ->where('updated_at < ?', gmdate('Y-m-d H:i:s', time() - ($days * 86400)))
-                ->where('email NOT LIKE ?', 'anon-%@example.invalid')
-                ->order('entity_id ASC')
-                ->limit($batchSize)
-        ));
-        foreach ($customerIds as $customerId) {
-            try {
-                $requestId = $this->requestManagement->submit($customerId, RequestType::ANONYMIZE, $storeId);
-                $this->requestManagement->transition($requestId, RequestStatus::VALIDATION, 'system');
-                $this->requestManagement->transition($requestId, RequestStatus::QUEUED, 'system');
-                $this->jobScheduler->schedule(
-                    AnonymizationProcessor::TYPE,
-                    FeatureCode::RETENTION_ABANDONED_ACCOUNTS,
-                    $storeId,
-                    ['customer_id' => $customerId],
-                    $requestId,
-                    'retention-account-' . $customerId
-                );
-            } catch (Throwable) {
-                // An active request or a concurrently removed account is skipped until the next run.
-                continue;
-            }
+                ->where('status IN (?)', ['completed', 'partially_completed'])
+                ->where('checkpoint IS NOT NULL')
+                ->order('job_id DESC')
+                ->limit(1)
+        );
+        if (!is_string($checkpoint) || str_starts_with($checkpoint, 'exhausted')) {
+            return 0;
         }
+        return preg_match('/(?:^|;)cursor:(\d+)/', $checkpoint, $match) === 1
+            ? (int)$match[1]
+            : 0;
     }
 }

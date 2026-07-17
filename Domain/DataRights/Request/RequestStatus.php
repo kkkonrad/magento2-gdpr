@@ -15,8 +15,9 @@ class RequestStatus
     public const COMPLETED = 'completed';
     public const PARTIALLY_COMPLETED = 'partially_completed';
     public const FAILED = 'failed';
+    public const EXPIRED = 'expired';
 
-    public const TERMINAL = [self::BLOCKED, self::REJECTED, self::COMPLETED];
+    public const TERMINAL = [self::BLOCKED, self::REJECTED, self::COMPLETED, self::EXPIRED];
 
     private function __construct()
     {

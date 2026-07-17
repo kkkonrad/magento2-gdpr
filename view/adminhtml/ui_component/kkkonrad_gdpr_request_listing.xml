@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">kkkonrad_gdpr_request_listing.kkkonrad_gdpr_request_listing_data_source</item>
+        </item>
+    </argument>
+    <settings>
+        <spinner>kkkonrad_gdpr_request_columns</spinner>
+        <deps><dep>kkkonrad_gdpr_request_listing.kkkonrad_gdpr_request_listing_data_source</dep></deps>
+    </settings>
+    <dataSource name="kkkonrad_gdpr_request_listing_data_source" component="Magento_Ui/js/grid/provider">
+        <settings>
+            <storageConfig><param name="indexField" xsi:type="string">request_id</param></storageConfig>
+            <updateUrl path="mui/index/render"/>
+        </settings>
+        <aclResource>Kkkonrad_Gdpr::requests_view</aclResource>
+        <dataProvider class="Magento\Framework\View\Element\UiComponent\DataProvider\DataProvider"
+                      name="kkkonrad_gdpr_request_listing_data_source">
+            <settings>
+                <requestFieldName>id</requestFieldName>
+                <primaryFieldName>request_id</primaryFieldName>
+            </settings>
+        </dataProvider>
+    </dataSource>
+    <listingToolbar name="listing_top">
+        <settings><sticky>true</sticky></settings>
+        <bookmark name="bookmarks"/>
+        <columnsControls name="columns_controls"/>
+        <filters name="listing_filters"/>
+        <paging name="listing_paging"/>
+    </listingToolbar>
+    <columns name="kkkonrad_gdpr_request_columns">
+        <column name="request_id" sortOrder="10">
+            <settings><filter>textRange</filter><sorting>desc</sorting><label translate="true">ID</label></settings>
+        </column>
+        <column name="public_id" sortOrder="20">
+            <settings><filter>text</filter><label translate="true">Public ID</label></settings>
+        </column>
+        <column name="customer_id" sortOrder="30">
+            <settings><filter>textRange</filter><label translate="true">Customer ID</label></settings>
+        </column>
+        <column name="type" sortOrder="40">
+            <settings><filter>text</filter><label translate="true">Type</label></settings>
+        </column>
+        <column name="status" sortOrder="50">
+            <settings><filter>text</filter><label translate="true">Status</label></settings>
+        </column>
+        <column name="store_id" sortOrder="60">
+            <settings><filter>textRange</filter><label translate="true">Store View ID</label></settings>
+        </column>
+        <column name="due_at" class="Magento\Ui\Component\Listing\Columns\Date" sortOrder="70">
+            <settings><filter>dateRange</filter><dataType>date</dataType><label translate="true">SLA Due</label></settings>
+        </column>
+        <column name="created_at" class="Magento\Ui\Component\Listing\Columns\Date" sortOrder="80">
+            <settings><filter>dateRange</filter><dataType>date</dataType><label translate="true">Created</label></settings>
+        </column>
+        <column name="updated_at" class="Magento\Ui\Component\Listing\Columns\Date" sortOrder="90">
+            <settings><filter>dateRange</filter><dataType>date</dataType><label translate="true">Updated</label></settings>
+        </column>
+        <actionsColumn name="actions" class="Kkkonrad\Gdpr\Ui\Component\Listing\Column\RequestActions" sortOrder="100">
+            <settings><indexField>request_id</indexField><label translate="true">Actions</label></settings>
+        </actionsColumn>
+    </columns>
+</listing>

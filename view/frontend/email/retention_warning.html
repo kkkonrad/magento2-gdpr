@@ -1,0 +1,8 @@
+<!--@subject {{trans "Your inactive account is scheduled for removal"}} @-->
+<!--@vars {"var request_id":"Privacy request reference","var request_type":"Request type","var scheduled_at":"Scheduled processing time"} @-->
+{{template config_path="design/email/header_template"}}
+<p>{{trans "Your inactive account is scheduled for automated erasure under the store retention policy."}}</p>
+<p>{{trans "Scheduled processing time: %scheduled_at" scheduled_at=$scheduled_at}}</p>
+<p>{{trans "Request reference: %request_id" request_id=$request_id}}</p>
+<p>{{trans "If this is unexpected, contact the store before the scheduled time."}}</p>
+{{template config_path="design/email/footer_template"}}

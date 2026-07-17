@@ -1,0 +1,13 @@
+<?php
+declare(strict_types=1);
+
+use Kkkonrad\Gdpr\Block\Consent\FormConfig;
+use Magento\Framework\Escaper;
+
+/** @var FormConfig $block */
+/** @var Escaper $escaper */
+?>
+<div data-kkkonrad-gdpr-form-consents
+     data-frontend-adapter="hyva"
+     data-config="<?= $escaper->escapeHtmlAttr($block->getJsonConfig()) ?>"
+     hidden></div>

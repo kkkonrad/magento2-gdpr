@@ -1,0 +1,58 @@
+<?php
+declare(strict_types=1);
+
+use Kkkonrad\Gdpr\Block\Adminhtml\Request\Toolbar;
+use Magento\Framework\Escaper;
+
+/** @var Toolbar $block */
+/** @var Escaper $escaper */
+?>
+<?php if ($block->canExport()): ?>
+    <p>
+        <a class="action-secondary" href="<?= $escaper->escapeUrl($block->getUrl('*/*/exportCsv')) ?>">
+            <?= $escaper->escapeHtml(__('Export GDPR requests CSV')) ?>
+        </a>
+    </p>
+<?php endif; ?>
+<?php if ($block->canCreateCustomerExport()): ?>
+    <form class="admin__fieldset"
+          action="<?= $escaper->escapeUrl($block->getUrl('*/*/createExport')) ?>"
+          method="post">
+        <?= /* @noEscape */ $block->getBlockHtml('formkey') ?>
+        <fieldset class="admin__fieldset">
+            <legend class="admin__legend"><span><?= $escaper->escapeHtml(__('Create customer data export')) ?></span></legend>
+            <div class="admin__field required">
+                <label class="admin__field-label" for="gdpr-export-customer-id">
+                    <span><?= $escaper->escapeHtml(__('Customer ID')) ?></span>
+                </label>
+                <div class="admin__field-control">
+                    <input class="admin__control-text"
+                           id="gdpr-export-customer-id"
+                           name="customer_id"
+                           type="number"
+                           min="1"
+                           required>
+                </div>
+            </div>
+            <div class="admin__field required">
+                <label class="admin__field-label" for="gdpr-export-admin-reason">
+                    <span><?= $escaper->escapeHtml(__('Administrative justification')) ?></span>
+                </label>
+                <div class="admin__field-control">
+                    <textarea class="admin__control-textarea"
+                              id="gdpr-export-admin-reason"
+                              name="admin_reason"
+                              maxlength="2000"
+                              required></textarea>
+                </div>
+            </div>
+            <div class="admin__field">
+                <div class="admin__field-control">
+                    <button class="action-primary" type="submit">
+                        <span><?= $escaper->escapeHtml(__('Queue data export')) ?></span>
+                    </button>
+                </div>
+            </div>
+        </fieldset>
+    </form>
+<?php endif; ?>

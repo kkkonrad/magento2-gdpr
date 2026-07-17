@@ -1,1 +1,83 @@
-.kkkonrad-gdpr-cmp .kkkonrad-gdpr-banner{position:fixed;z-index:10000;right:1rem;bottom:1rem;left:1rem;max-width:72rem;margin:auto;padding:1.25rem;color:#1f2937;background:#fff;border:1px solid #d1d5db;border-radius:.5rem;box-shadow:0 12px 30px rgba(0,0,0,.2)}.kkkonrad-gdpr-cmp .kkkonrad-gdpr-actions{display:flex;flex-wrap:wrap;gap:.75rem}.kkkonrad-gdpr-cmp button{min-height:44px;padding:.6rem 1rem}.kkkonrad-gdpr-cmp .kkkonrad-gdpr-dialog{width:min(42rem,calc(100% - 2rem));max-height:calc(100vh - 2rem);padding:1.5rem;border:0;border-radius:.5rem}.kkkonrad-gdpr-cmp .kkkonrad-gdpr-dialog::backdrop{background:rgba(0,0,0,.55)}.kkkonrad-gdpr-cmp .kkkonrad-gdpr-close{float:right}.kkkonrad-gdpr-cmp .kkkonrad-gdpr-group{margin:1rem 0;padding:1rem;border:1px solid #d1d5db}.kkkonrad-gdpr-cmp .kkkonrad-gdpr-settings{position:fixed;z-index:9998;right:1rem;bottom:1rem;font-size:.875rem}.kkkonrad-gdpr-cmp .kkkonrad-gdpr-live{position:fixed;z-index:10001;right:1rem;bottom:5rem;color:#b91c1c;background:#fff}@media (prefers-reduced-motion:reduce){.kkkonrad-gdpr-cmp *{scroll-behavior:auto!important;transition:none!important}}
+.kkkonrad-gdpr-cmp .kkkonrad-gdpr-banner {
+    position: fixed;
+    z-index: 10000;
+    right: 1rem;
+    bottom: 1rem;
+    left: 1rem;
+    max-width: 72rem;
+    margin: auto;
+    padding: 1.25rem;
+    color: #1f2937;
+    background: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: .5rem;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, .2);
+}
+
+.kkkonrad-gdpr-cmp .kkkonrad-gdpr-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .75rem;
+}
+
+.kkkonrad-gdpr-cmp button {
+    min-height: 44px;
+    padding: .6rem 1rem;
+}
+
+.kkkonrad-gdpr-cmp .kkkonrad-gdpr-dialog {
+    width: min(42rem, calc(100% - 2rem));
+    max-height: calc(100vh - 2rem);
+    padding: 1.5rem;
+    border: 0;
+    border-radius: .5rem;
+}
+
+.kkkonrad-gdpr-cmp .kkkonrad-gdpr-dialog::backdrop,
+.kkkonrad-gdpr-cmp .kkkonrad-gdpr-lock-overlay {
+    background: rgba(0, 0, 0, .55);
+}
+
+.kkkonrad-gdpr-cmp .kkkonrad-gdpr-lock-overlay {
+    position: fixed;
+    z-index: 9999;
+    inset: 0;
+}
+
+.kkkonrad-gdpr-cmp .kkkonrad-gdpr-close {
+    float: right;
+}
+
+.kkkonrad-gdpr-cmp .kkkonrad-gdpr-group {
+    margin: 1rem 0;
+    padding: 1rem;
+    border: 1px solid #d1d5db;
+}
+
+.kkkonrad-gdpr-cmp .kkkonrad-gdpr-settings {
+    position: fixed;
+    z-index: 9998;
+    right: 1rem;
+    bottom: 1rem;
+    font-size: .875rem;
+}
+
+.kkkonrad-gdpr-cmp .kkkonrad-gdpr-live {
+    position: fixed;
+    z-index: 10001;
+    right: 1rem;
+    bottom: 5rem;
+    color: #b91c1c;
+    background: #fff;
+}
+
+html.kkkonrad-gdpr-page-locked {
+    overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .kkkonrad-gdpr-cmp * {
+        scroll-behavior: auto !important;
+        transition: none !important;
+    }
+}

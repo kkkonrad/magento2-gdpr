@@ -3,9 +3,10 @@
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
         <referenceContainer name="content">
-            <block class="Kkkonrad\Gdpr\Block\Adminhtml\Request\Grid"
-                   name="kkkonrad.gdpr.request.grid"
-                   template="Kkkonrad_Gdpr::request/grid.phtml"/>
+            <block class="Kkkonrad\Gdpr\Block\Adminhtml\Request\Toolbar"
+                   name="kkkonrad.gdpr.request.toolbar"
+                   template="Kkkonrad_Gdpr::request/toolbar.phtml"/>
+            <uiComponent name="kkkonrad_gdpr_request_listing"/>
         </referenceContainer>
     </body>
 </page>

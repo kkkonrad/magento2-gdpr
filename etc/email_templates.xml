@@ -7,4 +7,20 @@
               type="html"
               module="Kkkonrad_Gdpr"
               area="frontend"/>
+    <template id="kkkonrad_gdpr_request_submitted" label="GDPR request submitted"
+              file="request_submitted.html" type="html" module="Kkkonrad_Gdpr" area="frontend"/>
+    <template id="kkkonrad_gdpr_request_approved" label="GDPR request approved"
+              file="request_approved.html" type="html" module="Kkkonrad_Gdpr" area="frontend"/>
+    <template id="kkkonrad_gdpr_request_rejected" label="GDPR request rejected"
+              file="request_rejected.html" type="html" module="Kkkonrad_Gdpr" area="frontend"/>
+    <template id="kkkonrad_gdpr_request_completed" label="GDPR request completed"
+              file="request_completed.html" type="html" module="Kkkonrad_Gdpr" area="frontend"/>
+    <template id="kkkonrad_gdpr_request_failed" label="GDPR request failed"
+              file="request_failed.html" type="html" module="Kkkonrad_Gdpr" area="frontend"/>
+    <template id="kkkonrad_gdpr_admin_erasure" label="GDPR new erasure request administrator alert"
+              file="admin_erasure.html" type="html" module="Kkkonrad_Gdpr" area="frontend"/>
+    <template id="kkkonrad_gdpr_admin_failure" label="GDPR automation failure administrator alert"
+              file="admin_failure.html" type="html" module="Kkkonrad_Gdpr" area="frontend"/>
+    <template id="kkkonrad_gdpr_retention_warning" label="GDPR automated erasure warning"
+              file="retention_warning.html" type="html" module="Kkkonrad_Gdpr" area="frontend"/>
 </config>

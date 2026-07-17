@@ -47,10 +47,27 @@ class Cmp extends Template
         return $this->json->serialize([
             'endpoint' => $this->getUrl('gdpr/consent/save'),
             'rejectedEndpoint' => $this->getUrl('gdpr/rejected/report'),
+            'regionEndpoint' => $this->getUrl('gdpr/region/resolve'),
             'formKey' => $this->formKey->getFormKey(),
             'policy' => $policy['public_id'],
             'groups' => $this->cookieRegistry->getGroups($storeId),
             'showBanner' => $this->featureManager->isEnabled(FeatureCode::COOKIE_BANNER, $storeId),
+            'lockScreen' => $this->scopeConfig->isSetFlag(
+                'kkkonrad_gdpr/cookie/lock_screen_enabled',
+                ScopeInterface::SCOPE_STORE,
+                $storeId
+            ),
+            'privacyUrl' => $this->getUrl('privacy-policy-cookie-restriction-mode'),
+            'regionMode' => (string)$this->scopeConfig->getValue(
+                'kkkonrad_gdpr/cookie/banner_region_mode',
+                ScopeInterface::SCOPE_STORE,
+                $storeId
+            ),
+            'regions' => array_values(array_filter(array_map('trim', explode(',', (string)$this->scopeConfig->getValue(
+                'kkkonrad_gdpr/cookie/banner_regions',
+                ScopeInterface::SCOPE_STORE,
+                $storeId
+            ))))),
             'googleConsentEnabled' => $this->featureManager->isEnabled(FeatureCode::GOOGLE_CONSENT, $storeId),
             'googleConsentDebug' => $this->scopeConfig->isSetFlag(
                 'kkkonrad_gdpr/google_consent/debug_enabled',
@@ -84,6 +101,7 @@ class Cmp extends Template
                 'close' => (string)__('Close'),
                 'settings' => (string)__('Cookie settings'),
                 'error' => (string)__('The cookie preference could not be saved. Please try again.'),
+                'privacy' => (string)__('Privacy policy'),
             ],
         ]);
     }

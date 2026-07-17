@@ -37,6 +37,7 @@ class ProcessJobs
             $connection->update($table, [
                 'status' => $result['failed'] > 0 ? 'completed_with_errors' : 'completed',
                 'processed_count' => $result['processed'],
+                'skipped_count' => $result['retried'],
                 'failed_count' => $result['failed'],
                 'finished_at' => gmdate('Y-m-d H:i:s'),
             ], ['run_id = ?' => $runId]);

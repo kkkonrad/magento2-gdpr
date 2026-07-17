@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace Kkkonrad\Gdpr\Application\Cookie;
 
 use DomainException;
+use Kkkonrad\Gdpr\Api\ClockInterface;
+use Kkkonrad\Gdpr\Api\CorrelationIdProviderInterface;
 use Kkkonrad\Gdpr\Api\Cookie\CookieDecisionRecorderInterface;
 use Kkkonrad\Gdpr\Api\Cookie\CookiePolicyVersionProviderInterface;
 use Kkkonrad\Gdpr\Api\Cookie\CookieRegistryInterface;
@@ -26,7 +28,9 @@ class CookieDecisionRecorder implements CookieDecisionRecorderInterface
         private readonly CookiePolicyVersionProviderInterface $policyVersionProvider,
         private readonly SubjectKeyGenerator $subjectKeyGenerator,
         private readonly DecisionToken $decisionToken,
-        private readonly ScopeConfigInterface $scopeConfig
+        private readonly ScopeConfigInterface $scopeConfig,
+        private readonly ClockInterface $clock,
+        private readonly CorrelationIdProviderInterface $correlationIdProvider
     ) {
     }
 
@@ -62,7 +66,7 @@ class CookieDecisionRecorder implements CookieDecisionRecorderInterface
             'choices_json' => $choicesJson,
             'region' => $region,
             'store_id' => $storeId,
-            'correlation_id' => $correlationId !== null ? mb_substr($correlationId, 0, 64) : null,
+            'correlation_id' => mb_substr($correlationId ?? $this->correlationIdProvider->get(), 0, 64),
         ]);
         $eventId = (int)$connection->fetchOne('SELECT LAST_INSERT_ID()');
         $lifetimeDays = max(1, (int)$this->scopeConfig->getValue(
@@ -70,13 +74,15 @@ class CookieDecisionRecorder implements CookieDecisionRecorderInterface
             ScopeInterface::SCOPE_STORE,
             $storeId
         ));
+        $issuedAt = $this->clock->timestamp();
+        $expiresAt = $issuedAt + ($lifetimeDays * 86400);
         $token = $this->decisionToken->create([
             'policy' => $policy['public_id'],
             'subject_key' => $subjectKey,
             'choices' => $normalizedChoices,
             'store_id' => $storeId,
-            'issued_at' => time(),
-            'expires_at' => time() + ($lifetimeDays * 86400),
+            'issued_at' => $issuedAt,
+            'expires_at' => $expiresAt,
         ]);
 
         return [
@@ -84,6 +90,7 @@ class CookieDecisionRecorder implements CookieDecisionRecorderInterface
             'subject_key' => $subjectKey,
             'token' => $token,
             'choices' => $normalizedChoices,
+            'expires_at' => $expiresAt,
         ];
     }
 

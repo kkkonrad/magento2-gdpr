@@ -69,7 +69,7 @@ class Save implements HttpPostActionInterface, CsrfAwareActionInterface
                 isset($input['correlation_id']) ? (string)$input['correlation_id'] : null
             );
             $metadata = $this->cookieMetadataFactory->create()
-                ->setDuration(31536000)
+                ->setDuration(max(1, $record['expires_at'] - time()))
                 ->setPath('/')
                 ->setHttpOnly(false)
                 ->setSecure($this->request->isSecure())
@@ -79,7 +79,6 @@ class Save implements HttpPostActionInterface, CsrfAwareActionInterface
             return $result->setData([
                 'success' => true,
                 'choices' => $record['choices'],
-                'subject_key' => $record['subject_key'],
             ]);
         } catch (DomainException $exception) {
             return $result->setHttpResponseCode(400)->setData([

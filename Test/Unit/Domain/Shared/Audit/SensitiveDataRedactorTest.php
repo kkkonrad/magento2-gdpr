@@ -6,7 +6,7 @@ namespace Kkkonrad\Gdpr\Test\Unit\Domain\Shared\Audit;
 use Kkkonrad\Gdpr\Domain\Shared\Audit\SensitiveDataRedactor;
 use PHPUnit\Framework\TestCase;
 
-final class SensitiveDataRedactorTest extends TestCase
+class SensitiveDataRedactorTest extends TestCase
 {
     public function testRedactsSensitiveKeysRecursivelyAndDropsObjects(): void
     {

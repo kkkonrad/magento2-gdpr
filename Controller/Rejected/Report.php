@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Kkkonrad\Gdpr\Controller\Rejected;
 
 use Kkkonrad\Gdpr\Api\Cookie\CookieRegistryInterface;
+use Kkkonrad\Gdpr\Api\ConfigProviderInterface;
 use Kkkonrad\Gdpr\Api\FeatureManagerInterface;
 use Kkkonrad\Gdpr\Domain\Cookie\CookiePatternMatcher;
 use Kkkonrad\Gdpr\Domain\Shared\Feature\FeatureCode;
@@ -31,7 +32,8 @@ class Report implements HttpPostActionInterface, CsrfAwareActionInterface
         private readonly CookiePatternMatcher $patternMatcher,
         private readonly StoreManagerInterface $storeManager,
         private readonly ResourceConnection $resourceConnection,
-        private readonly CacheInterface $cache
+        private readonly CacheInterface $cache,
+        private readonly ConfigProviderInterface $configProvider
     ) {
     }
 
@@ -64,6 +66,10 @@ class Report implements HttpPostActionInterface, CsrfAwareActionInterface
         }
         $table = $this->resourceConnection->getTableName('kkkonrad_gdpr_rejected_cookie');
         $connection = $this->resourceConnection->getConnection();
+        $unknownOnly = $this->configProvider->getString(
+            'kkkonrad_gdpr/cookie/track_unknown_only',
+            $storeId
+        ) === '1';
         $validNames = array_values(array_unique(array_filter($names, 'is_string')));
         foreach (array_slice($validNames, 0, 50) as $name) {
             if (preg_match('/^[A-Za-z0-9_.-]{1,255}$/', $name) !== 1) {
@@ -75,6 +81,9 @@ class Report implements HttpPostActionInterface, CsrfAwareActionInterface
                     $known = true;
                     break;
                 }
+            }
+            if ($unknownOnly && $known) {
+                continue;
             }
             $row = [
                 'store_id' => $storeId,

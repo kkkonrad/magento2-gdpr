@@ -36,6 +36,10 @@ class CookieCatalogManagement
         ) {
             throw new DomainException('Cookie group data is invalid.');
         }
+        if ($type === 'essential') {
+            $required = true;
+            $active = true;
+        }
         $connection = $this->resourceConnection->getConnection();
         $table = $this->resourceConnection->getTableName('kkkonrad_gdpr_cookie_group');
         $storeTable = $this->resourceConnection->getTableName('kkkonrad_gdpr_cookie_group_store');

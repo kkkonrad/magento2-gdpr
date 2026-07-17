@@ -9,13 +9,20 @@ use Kkkonrad\Gdpr\Domain\Shared\Job\JobProcessorInterface;
 use Kkkonrad\Gdpr\Domain\Shared\Job\JobProcessorPool;
 use PHPUnit\Framework\TestCase;
 
-final class JobProcessorPoolTest extends TestCase
+class JobProcessorPoolTest extends TestCase
 {
     public function testReturnsProcessorByType(): void
     {
-        $processor = new class implements JobProcessorInterface {
-            public function getType(): string { return 'export'; }
-            public function process(JobContext $context): void {}
+        $processor = new class implements JobProcessorInterface
+        {
+            public function getType(): string
+            {
+                return 'export';
+            }
+
+            public function process(JobContext $context): void
+            {
+            }
         };
 
         self::assertSame($processor, (new JobProcessorPool([$processor]))->get('export'));

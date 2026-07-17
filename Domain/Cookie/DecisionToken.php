@@ -4,14 +4,17 @@ declare(strict_types=1);
 namespace Kkkonrad\Gdpr\Domain\Cookie;
 
 use DomainException;
+use Kkkonrad\Gdpr\Api\ClockInterface;
 use Magento\Framework\App\DeploymentConfig;
 
 class DecisionToken
 {
     private const SIGNATURE_ALGORITHM = 'sha256';
 
-    public function __construct(private readonly DeploymentConfig $deploymentConfig)
-    {
+    public function __construct(
+        private readonly DeploymentConfig $deploymentConfig,
+        private readonly ClockInterface $clock
+    ) {
     }
 
     /**
@@ -41,7 +44,7 @@ class DecisionToken
             throw new DomainException('Invalid cookie consent token signature.');
         }
         $payload = json_decode($this->base64UrlDecode($encodedPayload), true, 16, JSON_THROW_ON_ERROR);
-        if (!is_array($payload) || (int)($payload['expires_at'] ?? 0) < time()) {
+        if (!is_array($payload) || (int)($payload['expires_at'] ?? 0) < $this->clock->timestamp()) {
             throw new DomainException('Cookie consent token has expired.');
         }
 

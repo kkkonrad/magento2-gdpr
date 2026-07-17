@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Kkkonrad\Gdpr\Application\DataRights;
 
+use Kkkonrad\Gdpr\Api\ClockInterface;
 use Kkkonrad\Gdpr\Domain\DataRights\Request\RequestType;
 use Kkkonrad\Gdpr\Api\DataRights\LegalHoldProviderInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
@@ -18,6 +19,7 @@ class EligibilityPolicy
     public function __construct(
         private readonly ResourceConnection $resourceConnection,
         private readonly ScopeConfigInterface $scopeConfig,
+        private readonly ClockInterface $clock,
         array $legalHoldProviders = []
     ) {
         $this->legalHoldProviders = $legalHoldProviders;
@@ -62,6 +64,28 @@ class EligibilityPolicy
                 'eligible' => false,
                 'code' => 'open_orders',
                 'message' => (string)__('The request cannot be processed while an order is still active.'),
+            ];
+        }
+
+        $protectionDays = max(1, (int)$this->scopeConfig->getValue(
+            'kkkonrad_gdpr/data_rights/document_protection_days',
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        ));
+        $protectedCount = (int)$this->resourceConnection->getConnection()->fetchOne(
+            $this->resourceConnection->getConnection()->select()
+                ->from($orderTable, ['COUNT(*)'])
+                ->where('customer_id = ?', $customerId)
+                ->where(
+                    'created_at >= ?',
+                    $this->clock->now()->modify('-' . $protectionDays . ' days')->format('Y-m-d H:i:s')
+                )
+        );
+        if ($protectedCount > 0) {
+            return [
+                'eligible' => false,
+                'code' => 'protected_sales_documents',
+                'message' => (string)__('The request cannot be processed while sales documents remain protected.'),
             ];
         }
 

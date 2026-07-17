@@ -12,6 +12,8 @@ bin/magento cache:flush
 
 W trybie produkcyjnym wykonaj także `bin/magento setup:di:compile` i standardowy static content deploy. Moduł jest domyślnie całkowicie wyłączony. Włączaj funkcje etapami po zatwierdzeniu treści, klasyfikacji cookies, okresów retencji i mapy anonimizacji przez IOD/biznes.
 
+W grupie `General` dostępne są jednorazowe profile startowe `UE — strict/default denied` oraz `Global informational notice`. Zastosowanie wymaga jawnego potwierdzenia, jest audytowane i nie włącza głównego przełącznika modułu. Profil globalny dopuszczający niezarządzane integracje wymaga osobnej oceny prawnej.
+
 ## Bezpieczna kolejność aktywacji
 
 1. `General > Enable GDPR`.
@@ -22,13 +24,18 @@ W trybie produkcyjnym wykonaj także `bin/magento setup:di:compile` i standardow
 6. Anonimizacja/usunięcie dopiero po testach na kopii danych.
 7. Retencja automatyczna na końcu, najpierw z dużymi okresami i małym batchem.
 
+Przy automatycznym usuwaniu porzuconych kont można włączyć ostrzeżenie z wyprzedzeniem. Usunięcie jest wtedy odroczone, a aktywność konta zostaje sprawdzona ponownie tuż przed wykonaniem. Alerty o nowych żądaniach usunięcia i terminalnych błędach automatyzacji można skierować do aktywnych administratorów wybranych ról.
+
 ## Operacje
 
 - Worker: `bin/magento kkkonrad:gdpr:cron --limit=100`.
 - Podgląd kolejki: `bin/magento kkkonrad:gdpr:cron --dry-run`.
 - Cron Magento uruchamia worker co minutę, retencję o 02:15 i cleanup eksportów co godzinę.
 - Eksporty trafiają do `var/kkkonrad/gdpr/exports` z prawami `0600`, nigdy do `pub/`.
+- Administrator z dedykowanym ACL może z gridu żądań zlecić eksport dla klienta; wymagane uzasadnienie jest szyfrowane, a tożsamość administratora trafia do historii.
 - Decyzje i zdarzenia audytowe są append-only; rollback kodu nie odwraca anonimizacji ani usunięcia.
+- Przerwane wysyłki outbox są odzyskiwane po 15 minutach; zaszyfrowane dane adresata są czyszczone po wysłaniu lub wygaśnięciu TTL.
+- Domyślna reautoryzacja używa aktualnego hasła. Sklep passwordless może podmienić publiczny kontrakt `Kkkonrad\Gdpr\Api\DataRights\ReauthenticationInterface` własnym adapterem dostawcy logowania.
 
 ## Integracja tagów
 
@@ -43,13 +50,13 @@ Stan jest dostępny przez `window.kkkonradConsent.has('marketing')`, a zmiana em
 ## Testy
 
 ```bash
-vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist app/code/Kkkonrad/Gdpr/Test/Unit
+vendor/bin/phpunit --no-extensions -c dev/tests/unit/phpunit.xml.dist app/code/Kkkonrad/Gdpr/Test/Unit
 vendor/bin/phpstan analyse -c app/code/Kkkonrad/Gdpr/phpstan.neon --no-progress
 vendor/bin/phpcs --standard=Magento2 --extensions=php app/code/Kkkonrad/Gdpr --ignore='*/Test/*'
 bin/magento setup:di:compile
 ```
 
-PHPCS dla obecnej bazy zgłasza wyłącznie ostrzeżenia dokumentacyjne/rozszerzalności, bez błędów standardu. Ostrzeżenie PHPUnit o brakującym `allure/allure.config.php` pochodzi z konfiguracji projektu, nie z modułu.
+PHPCS dla obecnej bazy zgłasza wyłącznie ostrzeżenia dokumentacyjne/rozszerzalności, bez błędów standardu. Opcja `--no-extensions` izoluje testy modułu od niekompletnej globalnej konfiguracji Allure projektu.
 
 ## Wsparcie
 

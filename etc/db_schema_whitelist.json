@@ -356,5 +356,51 @@
             "PRIMARY": true,
             "KKKONRAD_GDPR_REJECTED_COOKIE_STORE_ID_NAME_HASH_DOMAIN_HASH": true
         }
+    },
+    "kkkonrad_gdpr_notification": {
+        "column": {
+            "notification_id": true,
+            "request_id": true,
+            "notification_type": true,
+            "template_identifier": true,
+            "store_id": true,
+            "recipient_email_encrypted": true,
+            "recipient_name_encrypted": true,
+            "variables_encrypted": true,
+            "status": true,
+            "attempt_count": true,
+            "error_code": true,
+            "available_at": true,
+            "expires_at": true,
+            "sent_at": true,
+            "created_at": true,
+            "updated_at": true
+        },
+        "index": {
+            "KKKONRAD_GDPR_NOTIFICATION_STATUS_AVAILABLE_AT": true,
+            "KKKONRAD_GDPR_NOTIFICATION_EXPIRES_AT": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "KKKONRAD_GDPR_NOTIFICATION_REQUEST_ID_NOTIFICATION_TYPE": true,
+            "KKKONRAD_GDPR_NTFC_REQUEST_ID_KKKONRAD_GDPR_REQUEST_REQUEST_ID": true
+        }
+    },
+    "kkkonrad_gdpr_consent_subject_link": {
+        "column": {
+            "link_id": true,
+            "subject_key": true,
+            "customer_id": true,
+            "store_id": true,
+            "correlation_id": true,
+            "linked_at": true
+        },
+        "index": {
+            "KKKONRAD_GDPR_CONSENT_SUBJECT_LINK_CUSTOMER_ID_LINKED_AT": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "KKKONRAD_GDPR_CONSENT_SUBJECT_LINK_SUBJECT_KEY": true
+        }
     }
 }

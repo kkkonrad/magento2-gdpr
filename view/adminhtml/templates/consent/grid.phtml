@@ -46,8 +46,66 @@ use Magento\Framework\Escaper;
                 <input type="hidden" name="definition_id" value="<?= (int)$definition['definition_id'] ?>">
                 <input type="hidden" name="store_id" value="<?= (int)$definition['store_id'] ?>">
                 <button type="submit"><?= $escaper->escapeHtml(__('Publish new version')) ?></button>
-            </form></td>
+            </form>
+            <form method="post" action="<?= $escaper->escapeUrl($block->getUrl('*/*/archive')) ?>">
+                <?= $block->getBlockHtml('formkey') ?>
+                <input type="hidden" name="definition_id" value="<?= (int)$definition['definition_id'] ?>">
+                <input type="hidden" name="store_id" value="<?= (int)$definition['store_id'] ?>">
+                <button type="submit"><?= $escaper->escapeHtml(__('Archive')) ?></button>
+            </form>
+            <details><summary><?= $escaper->escapeHtml(__('Edit draft')) ?></summary>
+                <form method="post" action="<?= $escaper->escapeUrl($block->getUrl('*/*/save')) ?>">
+                    <?= $block->getBlockHtml('formkey') ?>
+                    <input type="hidden" name="definition_id" value="<?= (int)$definition['definition_id'] ?>">
+                    <input type="hidden" name="store_id" value="<?= (int)$definition['store_id'] ?>">
+                    <input class="admin__control-text" name="code" required value="<?= $escaper->escapeHtmlAttr((string)$definition['code']) ?>">
+                    <input class="admin__control-text" name="name" required value="<?= $escaper->escapeHtmlAttr((string)$definition['name']) ?>">
+                    <select class="admin__control-select" name="location"><?php foreach (['registration', 'newsletter', 'contact', 'checkout'] as $location): ?><option value="<?= $escaper->escapeHtmlAttr($location) ?>"<?= $definition['location'] === $location ? ' selected' : '' ?>><?= $escaper->escapeHtml($location) ?></option><?php endforeach; ?></select>
+                    <input class="admin__control-text" name="purpose" required value="<?= $escaper->escapeHtmlAttr((string)$definition['purpose']) ?>">
+                    <input class="admin__control-text" type="number" name="sort_order" min="0" value="<?= (int)$definition['sort_order'] ?>">
+                    <label><input type="checkbox" name="is_required" value="1"<?= $definition['is_required'] ? ' checked' : '' ?>> <?= $escaper->escapeHtml(__('Required')) ?></label>
+                    <label><input type="checkbox" name="is_active" value="1"<?= $definition['is_active'] ? ' checked' : '' ?>> <?= $escaper->escapeHtml(__('Active')) ?></label>
+                    <label><input type="checkbox" name="is_active_in_store" value="1"<?= $definition['store_active'] ? ' checked' : '' ?>> <?= $escaper->escapeHtml(__('Active in store')) ?></label>
+                    <textarea class="admin__control-textarea" name="content" required><?= $escaper->escapeHtml((string)$definition['content']) ?></textarea>
+                    <button type="submit"><?= $escaper->escapeHtml(__('Save draft changes')) ?></button>
+                </form>
+            </details></td>
         </tr>
     <?php endforeach; ?>
+    </tbody></table>
+</div>
+<div class="admin__data-grid-wrap">
+    <h2><?= $escaper->escapeHtml(__('Consent event history')) ?></h2>
+    <form method="get">
+        <input class="admin__control-text" type="number" name="event_id" min="1" placeholder="<?= $escaper->escapeHtmlAttr(__('Event ID')) ?>">
+        <input class="admin__control-text" type="number" name="customer_id" min="1" placeholder="<?= $escaper->escapeHtmlAttr(__('Customer ID')) ?>">
+        <input class="admin__control-text" name="location" placeholder="<?= $escaper->escapeHtmlAttr(__('Location')) ?>">
+        <input class="admin__control-text" name="decision" placeholder="<?= $escaper->escapeHtmlAttr(__('Decision')) ?>">
+        <input class="admin__control-text" name="source" placeholder="<?= $escaper->escapeHtmlAttr(__('Source')) ?>">
+        <input class="admin__control-text" type="number" name="store_id" min="0" placeholder="<?= $escaper->escapeHtmlAttr(__('Store ID')) ?>">
+        <input class="admin__control-text" type="date" name="date_from">
+        <input class="admin__control-text" type="date" name="date_to">
+        <button type="submit"><?= $escaper->escapeHtml(__('Filter')) ?></button>
+    </form>
+    <table class="data-grid"><thead><tr>
+        <th class="data-grid-th"><?= $escaper->escapeHtml(__('ID')) ?></th>
+        <th class="data-grid-th"><?= $escaper->escapeHtml(__('Date')) ?></th>
+        <th class="data-grid-th"><?= $escaper->escapeHtml(__('Customer / subject')) ?></th>
+        <th class="data-grid-th"><?= $escaper->escapeHtml(__('Consent')) ?></th>
+        <th class="data-grid-th"><?= $escaper->escapeHtml(__('Location')) ?></th>
+        <th class="data-grid-th"><?= $escaper->escapeHtml(__('Decision')) ?></th>
+        <th class="data-grid-th"><?= $escaper->escapeHtml(__('Source')) ?></th>
+        <th class="data-grid-th"><?= $escaper->escapeHtml(__('Store')) ?></th>
+    </tr></thead><tbody>
+    <?php foreach ($block->getEvents() as $event): ?><tr class="data-row">
+        <td><?= (int)$event['event_id'] ?></td>
+        <td><?= $escaper->escapeHtml((string)$event['occurred_at']) ?></td>
+        <td><?= $escaper->escapeHtml($event['effective_customer_id'] !== null ? (string)$event['effective_customer_id'] : (string)$event['subject_key']) ?></td>
+        <td><?= $escaper->escapeHtml((string)$event['code'] . ' v' . (string)$event['version']) ?></td>
+        <td><?= $escaper->escapeHtml((string)$event['location']) ?></td>
+        <td><?= $escaper->escapeHtml((string)$event['decision']) ?></td>
+        <td><?= $escaper->escapeHtml((string)$event['source']) ?></td>
+        <td><?= (int)$event['store_id'] ?></td>
+    </tr><?php endforeach; ?>
     </tbody></table>
 </div>

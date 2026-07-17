@@ -52,6 +52,7 @@
         var banner = root.querySelector('[data-role="banner"]');
         var live = root.querySelector('[data-role="live"]');
         var groupsContainer = root.querySelector('[data-role="groups"]');
+        var lockOverlay = root.querySelector('[data-role="lock-overlay"]');
         var savedPayload = readUnsignedPayload(readCookie(COOKIE_NAME));
         var hasCurrentDecision = savedPayload
             && savedPayload.policy === config.policy
@@ -72,6 +73,14 @@
         root.querySelector('[data-action="save"]').textContent = config.text.save;
         root.querySelector('[data-action="open-settings"]').textContent = config.text.settings;
         root.querySelector('[data-action="close"] .screen-reader-text').textContent = config.text.close;
+        root.querySelector('[data-role="privacy-link"]').textContent = config.text.privacy;
+        root.querySelector('[data-role="privacy-link"]').setAttribute('href', config.privacyUrl);
+
+        function updateLockScreen(locked) {
+            var shouldLock = Boolean(config.lockScreen && locked);
+            lockOverlay.hidden = !shouldLock;
+            document.documentElement.classList.toggle('kkkonrad-gdpr-page-locked', shouldLock);
+        }
 
         function renderGroups() {
             groupsContainer.replaceChildren();
@@ -118,8 +127,26 @@
         }
 
         function deleteCookie(name) {
-            document.cookie = encodeURIComponent(name) + '=; Max-Age=0; path=/; SameSite=Lax';
-            document.cookie = encodeURIComponent(name) + '=; Max-Age=0; path=' + window.location.pathname + '; SameSite=Lax';
+            var paths = ['/'];
+            var segments = window.location.pathname.split('/').filter(Boolean);
+            var current = '';
+            segments.forEach(function (segment) {
+                current += '/' + segment;
+                paths.push(current);
+            });
+            var hostParts = window.location.hostname.split('.');
+            var domains = ['', window.location.hostname, '.' + window.location.hostname];
+            for (var i = 1; i < hostParts.length - 1; i += 1) {
+                domains.push('.' + hostParts.slice(i).join('.'));
+            }
+            paths.forEach(function (path) {
+                domains.forEach(function (domain) {
+                    document.cookie = encodeURIComponent(name)
+                        + '=; Max-Age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=' + path
+                        + (domain ? '; domain=' + domain : '')
+                        + '; SameSite=Lax';
+                });
+            });
         }
 
         function patternMatches(pattern, name) {
@@ -138,17 +165,25 @@
                 }
                 (group.cookies || []).forEach(function (entry) {
                     if (entry.storage_type === 'local_storage') {
-                        Object.keys(window.localStorage || {}).forEach(function (name) {
-                            if (patternMatches(entry.code_pattern, name)) {
-                                window.localStorage.removeItem(name);
-                            }
-                        });
+                        try {
+                            Object.keys(window.localStorage).forEach(function (name) {
+                                if (patternMatches(entry.code_pattern, name)) {
+                                    window.localStorage.removeItem(name);
+                                }
+                            });
+                        } catch (error) {
+                            // Browser privacy settings can make Web Storage unavailable.
+                        }
                     } else if (entry.storage_type === 'session_storage') {
-                        Object.keys(window.sessionStorage || {}).forEach(function (name) {
-                            if (patternMatches(entry.code_pattern, name)) {
-                                window.sessionStorage.removeItem(name);
-                            }
-                        });
+                        try {
+                            Object.keys(window.sessionStorage).forEach(function (name) {
+                                if (patternMatches(entry.code_pattern, name)) {
+                                    window.sessionStorage.removeItem(name);
+                                }
+                            });
+                        } catch (error) {
+                            // Browser privacy settings can make Web Storage unavailable.
+                        }
                     } else {
                         visibleNames.forEach(function (name) {
                             if (patternMatches(entry.code_pattern, name)) {
@@ -182,9 +217,14 @@
             if (!config.googleConsentEnabled || typeof window.gtag !== 'function') {
                 return;
             }
-            var analytics = Boolean(choices.statistical || choices.analytics);
-            var advertising = Boolean(choices.marketing);
-            var functionality = Boolean(choices.functionality);
+            function isSemanticTypeAllowed(type) {
+                return (config.groups || []).some(function (group) {
+                    return group.type === type && Boolean(choices[group.code]);
+                });
+            }
+            var analytics = isSemanticTypeAllowed('statistical');
+            var advertising = isSemanticTypeAllowed('marketing');
+            var functionality = isSemanticTypeAllowed('functionality');
             window.gtag('consent', 'update', {
                 ad_storage: advertising ? 'granted' : 'denied',
                 analytics_storage: analytics ? 'granted' : 'denied',
@@ -254,6 +294,7 @@
             }).then(function (response) {
                 choices = response.choices;
                 banner.hidden = true;
+                updateLockScreen(false);
                 closeDialog();
                 applyDecision();
             }).catch(function () {
@@ -272,8 +313,41 @@
         root.querySelector('[data-action="customize"]').addEventListener('click', openDialog);
         root.querySelector('[data-action="open-settings"]').addEventListener('click', openDialog);
         root.querySelector('[data-action="save"]').addEventListener('click', save);
+        function setBannerVisibility(visible) {
+            var shouldShow = Boolean(visible && !hasCurrentDecision && config.showBanner);
+            banner.hidden = !shouldShow;
+            updateLockScreen(shouldShow);
+        }
+
+        function matchesConfiguredRegion(region) {
+            if (!region) {
+                return true;
+            }
+            return (config.regions || []).some(function (configured) {
+                return region === configured || region.indexOf(configured + '-') === 0;
+            });
+        }
+
+        banner.hidden = true;
         root.hidden = false;
-        banner.hidden = Boolean(hasCurrentDecision || !config.showBanner);
+        if (config.regionMode === 'selected' && !hasCurrentDecision && config.showBanner) {
+            window.fetch(config.regionEndpoint, {
+                method: 'GET',
+                credentials: 'same-origin',
+                headers: {'Accept': 'application/json'}
+            }).then(function (response) {
+                if (!response.ok) {
+                    throw new Error('region_failed');
+                }
+                return response.json();
+            }).then(function (resolved) {
+                setBannerVisibility(matchesConfiguredRegion(resolved.region));
+            }).catch(function () {
+                setBannerVisibility(true);
+            });
+        } else {
+            setBannerVisibility(true);
+        }
         window.kkkonradConsent = {
             has: function (group) { return Boolean(choices[group]); },
             open: openDialog

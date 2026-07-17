@@ -35,16 +35,25 @@ class GoogleConsent extends Template
     public function getDefaultState(): array
     {
         $storeId = (int)$this->storeManager->getStore()->getId();
+        $profile = (string)$this->scopeConfig->getValue(
+            'kkkonrad_gdpr/google_consent/default_profile',
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
         $state = [];
         foreach ([
             'ad_storage', 'analytics_storage', 'functionality_storage', 'personalization_storage',
             'security_storage', 'ad_user_data', 'ad_personalization',
         ] as $type) {
-            $value = (string)$this->scopeConfig->getValue(
-                'kkkonrad_gdpr/google_consent/' . $type,
-                ScopeInterface::SCOPE_STORE,
-                $storeId
-            );
+            $value = match ($profile) {
+                'all_denied' => 'denied',
+                'essential' => $type === 'security_storage' ? 'granted' : 'denied',
+                default => (string)$this->scopeConfig->getValue(
+                    'kkkonrad_gdpr/google_consent/' . $type,
+                    ScopeInterface::SCOPE_STORE,
+                    $storeId
+                ),
+            };
             $state[$type] = $value === 'granted' ? 'granted' : 'denied';
         }
         $state['wait_for_update'] = 500;

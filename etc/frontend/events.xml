@@ -5,4 +5,8 @@
         <observer name="kkkonrad_gdpr_record_registration_consent"
                   instance="Kkkonrad\Gdpr\Observer\Consent\RecordRegistrationConsent"/>
     </event>
+    <event name="customer_login">
+        <observer name="kkkonrad_gdpr_link_guest_consents"
+                  instance="Kkkonrad\Gdpr\Observer\Consent\LinkGuestConsentsOnLogin"/>
+    </event>
 </config>

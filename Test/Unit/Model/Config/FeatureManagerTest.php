@@ -11,8 +11,9 @@ use Magento\Store\Model\ScopeInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
-final class FeatureManagerTest extends TestCase
+class FeatureManagerTest extends TestCase
 {
+    /** @var ScopeConfigInterface&MockObject */
     private ScopeConfigInterface&MockObject $scopeConfig;
 
     protected function setUp(): void
