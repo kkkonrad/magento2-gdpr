@@ -4,13 +4,56 @@ Jeden moduł Magento 2 obsługujący prawa do danych, dowody zgód formularzowyc
 
 ## Instalacja
 
+Pakiet Composer: `kkkonrad/module-gdpr`  
+Moduł Magento: `Kkkonrad_Gdpr`  
+Repozytorium Git: `https://github.com/kkkonrad/magento2-gdpr.git`
+
+### Composer z repozytorium Git
+
+W katalogu głównym projektu Magento:
+
+```bash
+composer config repositories.kkkonrad-gdpr vcs https://github.com/kkkonrad/magento2-gdpr.git
+composer require kkkonrad/module-gdpr
+```
+
+Warianty wersji (Composer bierze wersję z **tagów Git**, nie z `composer.json`):
+
+```bash
+# gałąź master (dopóki nie ma opublikowanych tagów)
+composer require kkkonrad/module-gdpr:dev-master
+
+# po utworzeniu taga, np. v1.0.0
+composer require kkkonrad/module-gdpr:^1.0
+# albo dokładnie:
+composer require kkkonrad/module-gdpr:1.0.0
+```
+
+Prywatne repozytorium (SSH):
+
+```bash
+composer config repositories.kkkonrad-gdpr vcs git@github.com:kkkonrad/magento2-gdpr.git
+composer require kkkonrad/module-gdpr
+```
+
+Po pobraniu pakietu włącz moduł w Magento:
+
 ```bash
 bin/magento module:enable Kkkonrad_Gdpr
 bin/magento setup:upgrade
 bin/magento cache:flush
 ```
 
-W trybie produkcyjnym wykonaj także `bin/magento setup:di:compile` i standardowy static content deploy. Moduł jest domyślnie całkowicie wyłączony. Włączaj funkcje etapami po zatwierdzeniu treści, klasyfikacji cookies, okresów retencji i mapy anonimizacji przez IOD/biznes.
+W trybie produkcyjnym dodatkowo:
+
+```bash
+bin/magento setup:di:compile
+bin/magento setup:static-content:deploy -f
+```
+
+### Po instalacji
+
+Moduł jest domyślnie całkowicie wyłączony w konfiguracji (`Stores > Configuration > Kkkonrad > GDPR Settings`). Włączaj funkcje etapami po zatwierdzeniu treści, klasyfikacji cookies, okresów retencji i mapy anonimizacji przez IOD/biznes.
 
 W grupie `General` dostępne są jednorazowe profile startowe `UE — strict/default denied` oraz `Global informational notice`. Zastosowanie wymaga jawnego potwierdzenia, jest audytowane i nie włącza głównego przełącznika modułu. Profil globalny dopuszczający niezarządzane integracje wymaga osobnej oceny prawnej.
 
