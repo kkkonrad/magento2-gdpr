@@ -14,8 +14,9 @@ use Magento\Framework\Escaper;
         <input class="admin__control-text" name="code" required placeholder="code">
         <input class="admin__control-text" name="name" required placeholder="<?= $escaper->escapeHtmlAttr(__('Internal name')) ?>">
         <select class="admin__control-select" name="location">
-            <option value="registration">registration</option><option value="newsletter">newsletter</option>
-            <option value="contact">contact</option><option value="checkout">checkout</option>
+            <?php foreach (['registration', 'newsletter', 'contact', 'checkout'] as $location): ?>
+                <option value="<?= $escaper->escapeHtmlAttr($location) ?>"><?= $escaper->escapeHtml(__($location)) ?></option>
+            <?php endforeach; ?>
         </select>
         <input class="admin__control-text" name="purpose" required placeholder="<?= $escaper->escapeHtmlAttr(__('Purpose')) ?>">
         <input class="admin__control-text" type="number" name="sort_order" value="0" min="0">
@@ -38,7 +39,7 @@ use Magento\Framework\Escaper;
     <?php foreach ($block->getDefinitions() as $definition): ?>
         <tr class="data-row">
             <td><?= $escaper->escapeHtml($definition['code']) ?></td>
-            <td><?= $escaper->escapeHtml($definition['location']) ?></td>
+            <td><?= $escaper->escapeHtml(__((string)$definition['location'])) ?></td>
             <td><?= (int)$definition['store_id'] ?></td>
             <td><?= (int)$definition['published_version'] ?></td>
             <td><form method="post" action="<?= $escaper->escapeUrl($block->getUrl('*/*/publish')) ?>">
@@ -60,7 +61,7 @@ use Magento\Framework\Escaper;
                     <input type="hidden" name="store_id" value="<?= (int)$definition['store_id'] ?>">
                     <input class="admin__control-text" name="code" required value="<?= $escaper->escapeHtmlAttr((string)$definition['code']) ?>">
                     <input class="admin__control-text" name="name" required value="<?= $escaper->escapeHtmlAttr((string)$definition['name']) ?>">
-                    <select class="admin__control-select" name="location"><?php foreach (['registration', 'newsletter', 'contact', 'checkout'] as $location): ?><option value="<?= $escaper->escapeHtmlAttr($location) ?>"<?= $definition['location'] === $location ? ' selected' : '' ?>><?= $escaper->escapeHtml($location) ?></option><?php endforeach; ?></select>
+                    <select class="admin__control-select" name="location"><?php foreach (['registration', 'newsletter', 'contact', 'checkout'] as $location): ?><option value="<?= $escaper->escapeHtmlAttr($location) ?>"<?= $definition['location'] === $location ? ' selected' : '' ?>><?= $escaper->escapeHtml(__($location)) ?></option><?php endforeach; ?></select>
                     <input class="admin__control-text" name="purpose" required value="<?= $escaper->escapeHtmlAttr((string)$definition['purpose']) ?>">
                     <input class="admin__control-text" type="number" name="sort_order" min="0" value="<?= (int)$definition['sort_order'] ?>">
                     <label><input type="checkbox" name="is_required" value="1"<?= $definition['is_required'] ? ' checked' : '' ?>> <?= $escaper->escapeHtml(__('Required')) ?></label>
@@ -102,9 +103,9 @@ use Magento\Framework\Escaper;
         <td><?= $escaper->escapeHtml((string)$event['occurred_at']) ?></td>
         <td><?= $escaper->escapeHtml($event['effective_customer_id'] !== null ? (string)$event['effective_customer_id'] : (string)$event['subject_key']) ?></td>
         <td><?= $escaper->escapeHtml((string)$event['code'] . ' v' . (string)$event['version']) ?></td>
-        <td><?= $escaper->escapeHtml((string)$event['location']) ?></td>
-        <td><?= $escaper->escapeHtml((string)$event['decision']) ?></td>
-        <td><?= $escaper->escapeHtml((string)$event['source']) ?></td>
+        <td><?= $escaper->escapeHtml(__((string)$event['location'])) ?></td>
+        <td><?= $escaper->escapeHtml(__((string)$event['decision'])) ?></td>
+        <td><?= $escaper->escapeHtml(__((string)$event['source'])) ?></td>
         <td><?= (int)$event['store_id'] ?></td>
     </tr><?php endforeach; ?>
     </tbody></table>

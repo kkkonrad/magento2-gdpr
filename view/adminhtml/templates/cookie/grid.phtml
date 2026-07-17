@@ -13,7 +13,7 @@ $groups = $block->getGroups();
     <form method="post" action="<?= $escaper->escapeUrl($block->getUrl('*/*/saveGroup')) ?>">
         <?= $block->getBlockHtml('formkey') ?>
         <input class="admin__control-text" name="code" required placeholder="code">
-        <select class="admin__control-select" name="type"><option>essential</option><option>functionality</option><option>statistical</option><option>marketing</option><option>custom</option></select>
+        <select class="admin__control-select" name="type"><?php foreach (['essential', 'functionality', 'statistical', 'marketing', 'custom'] as $type): ?><option value="<?= $escaper->escapeHtmlAttr($type) ?>"><?= $escaper->escapeHtml(__($type)) ?></option><?php endforeach; ?></select>
         <input class="admin__control-text" name="name" required placeholder="<?= $escaper->escapeHtmlAttr(__('Displayed name')) ?>">
         <input class="admin__control-text" name="description" placeholder="<?= $escaper->escapeHtmlAttr(__('Description')) ?>">
         <input class="admin__control-text" type="number" name="priority" value="10" min="0">
@@ -28,11 +28,11 @@ $groups = $block->getGroups();
     <form method="post" action="<?= $escaper->escapeUrl($block->getUrl('*/*/saveCookie')) ?>">
         <?= $block->getBlockHtml('formkey') ?>
         <select class="admin__control-select" name="group_id">
-            <?php foreach ($groups as $group): ?><option value="<?= (int)$group['group_id'] ?>"><?= $escaper->escapeHtml($group['name']) ?></option><?php endforeach; ?>
+            <?php foreach ($groups as $group): ?><option value="<?= (int)$group['group_id'] ?>"><?= $escaper->escapeHtml(__((string)$group['name'])) ?></option><?php endforeach; ?>
         </select>
         <input class="admin__control-text" name="name" required placeholder="<?= $escaper->escapeHtmlAttr(__('Name')) ?>">
         <input class="admin__control-text" name="code_pattern" required placeholder="cookie_name*">
-        <select class="admin__control-select" name="storage_type"><option>cookie</option><option>local_storage</option><option>session_storage</option></select>
+        <select class="admin__control-select" name="storage_type"><?php foreach (['cookie', 'local_storage', 'session_storage'] as $storageType): ?><option value="<?= $escaper->escapeHtmlAttr($storageType) ?>"><?= $escaper->escapeHtml(__($storageType)) ?></option><?php endforeach; ?></select>
         <input class="admin__control-text" type="number" name="lifetime" min="0" placeholder="<?= $escaper->escapeHtmlAttr(__('Lifetime in seconds')) ?>">
         <input class="admin__control-text" name="description" placeholder="<?= $escaper->escapeHtmlAttr(__('Description')) ?>">
         <input class="admin__control-text" type="number" name="store_id" value="0" min="0">
@@ -44,7 +44,7 @@ $groups = $block->getGroups();
 <div class="admin__data-grid-wrap">
     <h2><?= $escaper->escapeHtml(__('Active catalog')) ?></h2>
     <table class="data-grid"><thead><tr><th class="data-grid-th"><?= $escaper->escapeHtml(__('Group')) ?></th><th class="data-grid-th"><?= $escaper->escapeHtml(__('Required')) ?></th><th class="data-grid-th"><?= $escaper->escapeHtml(__('Cookies / storage')) ?></th></tr></thead><tbody>
-    <?php foreach ($groups as $group): ?><tr class="data-row"><td><?= $escaper->escapeHtml($group['name']) ?></td><td><?= $group['is_required'] ? $escaper->escapeHtml(__('Yes')) : $escaper->escapeHtml(__('No')) ?></td><td><ul><?php foreach ($group['cookies'] as $cookie): ?><li><?= $escaper->escapeHtml($cookie['code_pattern']) ?> (<?= $escaper->escapeHtml($cookie['storage_type']) ?>)</li><?php endforeach; ?></ul></td></tr><?php endforeach; ?>
+    <?php foreach ($groups as $group): ?><tr class="data-row"><td><?= $escaper->escapeHtml(__((string)$group['name'])) ?></td><td><?= $group['is_required'] ? $escaper->escapeHtml(__('Yes')) : $escaper->escapeHtml(__('No')) ?></td><td><ul><?php foreach ($group['cookies'] as $cookie): ?><li><?= $escaper->escapeHtml($cookie['code_pattern']) ?> (<?= $escaper->escapeHtml(__((string)$cookie['storage_type'])) ?>)</li><?php endforeach; ?></ul></td></tr><?php endforeach; ?>
     </tbody></table>
 </div>
 <div class="admin__data-grid-wrap">
@@ -61,6 +61,6 @@ $groups = $block->getGroups();
         <button type="submit"><?= $escaper->escapeHtml(__('Filter')) ?></button>
     </form>
     <table class="data-grid"><thead><tr><th class="data-grid-th"><?= $escaper->escapeHtml(__('Name')) ?></th><th class="data-grid-th"><?= $escaper->escapeHtml(__('Domain')) ?></th><th class="data-grid-th"><?= $escaper->escapeHtml(__('Unknown')) ?></th><th class="data-grid-th"><?= $escaper->escapeHtml(__('Count')) ?></th><th class="data-grid-th"><?= $escaper->escapeHtml(__('Last seen')) ?></th><th class="data-grid-th"><?= $escaper->escapeHtml(__('Action')) ?></th></tr></thead><tbody>
-    <?php foreach ($block->getRejected() as $row): ?><tr class="data-row"><td><?= $escaper->escapeHtml($row['cookie_name']) ?></td><td><?= $escaper->escapeHtml($row['domain']) ?></td><td><?= $row['is_unknown'] ? $escaper->escapeHtml(__('Yes')) : $escaper->escapeHtml(__('No')) ?></td><td><?= (int)$row['occurrence_count'] ?></td><td><?= $escaper->escapeHtml($row['last_seen_at']) ?></td><td><form method="post" action="<?= $escaper->escapeUrl($block->getUrl('*/*/createFromRejected')) ?>"><?= $block->getBlockHtml('formkey') ?><input type="hidden" name="rejected_id" value="<?= (int)$row['rejected_id'] ?>"><select name="group_id" class="admin__control-select"><?php foreach ($groups as $group): ?><option value="<?= (int)$group['group_id'] ?>"><?= $escaper->escapeHtml($group['name']) ?></option><?php endforeach; ?></select><button type="submit"><?= $escaper->escapeHtml(__('Create inactive draft')) ?></button></form></td></tr><?php endforeach; ?>
+    <?php foreach ($block->getRejected() as $row): ?><tr class="data-row"><td><?= $escaper->escapeHtml($row['cookie_name']) ?></td><td><?= $escaper->escapeHtml($row['domain']) ?></td><td><?= $row['is_unknown'] ? $escaper->escapeHtml(__('Yes')) : $escaper->escapeHtml(__('No')) ?></td><td><?= (int)$row['occurrence_count'] ?></td><td><?= $escaper->escapeHtml($row['last_seen_at']) ?></td><td><form method="post" action="<?= $escaper->escapeUrl($block->getUrl('*/*/createFromRejected')) ?>"><?= $block->getBlockHtml('formkey') ?><input type="hidden" name="rejected_id" value="<?= (int)$row['rejected_id'] ?>"><select name="group_id" class="admin__control-select"><?php foreach ($groups as $group): ?><option value="<?= (int)$group['group_id'] ?>"><?= $escaper->escapeHtml(__((string)$group['name'])) ?></option><?php endforeach; ?></select><button type="submit"><?= $escaper->escapeHtml(__('Create inactive draft')) ?></button></form></td></tr><?php endforeach; ?>
     </tbody></table>
 </div>

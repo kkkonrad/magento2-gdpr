@@ -28,7 +28,9 @@ $request = $block->getGdprRequest();
         ] as $key => $label): ?>
             <tr>
                 <th><?= $escaper->escapeHtml($label) ?></th>
-                <td><?= $escaper->escapeHtml((string)($request[$key] ?? '')) ?></td>
+                <td><?= $escaper->escapeHtml(in_array($key, ['type', 'status'], true)
+                    ? __((string)($request[$key] ?? ''))
+                    : (string)($request[$key] ?? '')) ?></td>
             </tr>
         <?php endforeach; ?>
     </table>

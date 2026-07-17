@@ -41,10 +41,10 @@
         <column name="customer_id" sortOrder="30">
             <settings><filter>textRange</filter><label translate="true">Customer ID</label></settings>
         </column>
-        <column name="type" sortOrder="40">
+        <column name="type" class="Kkkonrad\Gdpr\Ui\Component\Listing\Column\TranslatedText" sortOrder="40">
             <settings><filter>text</filter><label translate="true">Type</label></settings>
         </column>
-        <column name="status" sortOrder="50">
+        <column name="status" class="Kkkonrad\Gdpr\Ui\Component\Listing\Column\TranslatedText" sortOrder="50">
             <settings><filter>text</filter><label translate="true">Status</label></settings>
         </column>
         <column name="store_id" sortOrder="60">

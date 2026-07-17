@@ -47,7 +47,7 @@ class Cmp extends Template
             'rejectedEndpoint' => $this->getUrl('gdpr/rejected/report'),
             'regionEndpoint' => $this->getUrl('gdpr/region/resolve'),
             'policy' => $policy['public_id'],
-            'groups' => $this->cookieRegistry->getGroups($storeId),
+            'groups' => $this->getLocalizedGroups($storeId),
             'showBanner' => $this->featureManager->isEnabled(FeatureCode::COOKIE_BANNER, $storeId),
             'lockScreen' => $this->scopeConfig->isSetFlag(
                 'kkkonrad_gdpr/cookie/lock_screen_enabled',
@@ -101,5 +101,26 @@ class Cmp extends Template
                 'privacy' => (string)__('Privacy policy'),
             ],
         ]);
+    }
+
+    /** @return array<int, array<string, mixed>> */
+    private function getLocalizedGroups(int $storeId): array
+    {
+        $groups = $this->cookieRegistry->getGroups($storeId);
+        foreach ($groups as &$group) {
+            $group['name'] = (string)__((string)($group['name'] ?? ''));
+            $group['description'] = (string)__((string)($group['description'] ?? ''));
+            if (!isset($group['cookies']) || !is_array($group['cookies'])) {
+                continue;
+            }
+            foreach ($group['cookies'] as &$cookie) {
+                $cookie['name'] = (string)__((string)($cookie['name'] ?? ''));
+                $cookie['description'] = (string)__((string)($cookie['description'] ?? ''));
+            }
+            unset($cookie);
+        }
+        unset($group);
+
+        return $groups;
     }
 }
