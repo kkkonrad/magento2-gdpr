@@ -100,6 +100,7 @@ class Cmp extends Template
                 'required' => (string)__('Required'),
                 'error' => (string)__('The cookie preference could not be saved. Please try again.'),
                 'privacy' => (string)__('Privacy policy'),
+                'cookieDetails' => (string)__('Show cookie details'),
             ],
         ]);
     }

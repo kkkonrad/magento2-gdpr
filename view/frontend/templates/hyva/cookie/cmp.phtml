@@ -17,14 +17,19 @@ if (!$block->isEnabled()) {
      hidden>
     <div class="kkkonrad-gdpr-lock-overlay" data-role="lock-overlay" hidden></div>
     <section class="kkkonrad-gdpr-banner" data-role="banner" aria-label="<?= $escaper->escapeHtmlAttr(__('Cookie consent')) ?>">
-        <div class="kkkonrad-gdpr-banner-content">
-            <p class="kkkonrad-gdpr-banner-text" data-role="banner-text"></p>
-            <a class="kkkonrad-gdpr-policy-link" data-role="privacy-link"></a>
-        </div>
-        <div class="kkkonrad-gdpr-actions">
-            <button type="button" data-action="accept-all"></button>
-            <button type="button" data-action="reject-optional"></button>
-            <button type="button" data-action="customize"></button>
+        <div class="kkkonrad-gdpr-banner-inner">
+            <div class="kkkonrad-gdpr-banner-brand">
+                <div class="kkkonrad-gdpr-banner-content">
+                    <p class="kkkonrad-gdpr-banner-kicker"><?= $escaper->escapeHtml(__('Cookie consent')) ?></p>
+                    <p class="kkkonrad-gdpr-banner-text" data-role="banner-text"></p>
+                    <a class="kkkonrad-gdpr-policy-link" data-role="privacy-link"></a>
+                </div>
+            </div>
+            <div class="kkkonrad-gdpr-actions">
+                <button type="button" data-action="accept-all"></button>
+                <button type="button" data-action="reject-optional"></button>
+                <button type="button" data-action="customize"></button>
+            </div>
         </div>
     </section>
     <dialog class="kkkonrad-gdpr-dialog" data-role="dialog"

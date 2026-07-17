@@ -93,35 +93,68 @@
         function renderGroups() {
             groupsContainer.replaceChildren();
             (config.groups || []).forEach(function (group) {
-                var fieldset = createElement('fieldset', {'class': 'kkkonrad-gdpr-group'});
-                var legend = createElement('legend');
-                var label = createElement('label');
+                var fieldset = createElement('fieldset', {
+                    'class': 'kkkonrad-gdpr-group' + (group.is_required ? ' is-required' : '')
+                });
+                var label = createElement('label', {'class': 'kkkonrad-gdpr-switch'});
                 var checkbox = createElement('input', {
                     type: 'checkbox',
                     'data-group-code': group.code
                 });
+                var switchUi = createElement('span', {
+                    'class': 'kkkonrad-gdpr-switch-ui',
+                    'aria-hidden': 'true'
+                });
+                var title = createElement('span', {'class': 'kkkonrad-gdpr-group-title'});
+                title.appendChild(document.createTextNode(group.name));
+                if (group.is_required) {
+                    title.appendChild(createElement('span', {'class': 'kkkonrad-gdpr-required'}, config.text.required));
+                }
+
                 checkbox.checked = Boolean(choices[group.code]);
                 checkbox.disabled = Boolean(group.is_required);
+                checkbox.setAttribute('aria-label', group.name);
                 checkbox.addEventListener('change', function () {
                     choices[group.code] = checkbox.checked;
                 });
+
+                /* DOM order: checkbox + track (for :checked + sibling), then title, then body */
                 label.appendChild(checkbox);
-                label.appendChild(createElement('span', {}, group.name));
-                if (group.is_required) {
-                    label.appendChild(createElement('span', {'class': 'kkkonrad-gdpr-required'}, config.text.required));
+                label.appendChild(switchUi);
+                label.appendChild(title);
+
+                if (group.description || (group.cookies || []).length) {
+                    var body = createElement('div', {'class': 'kkkonrad-gdpr-group-body'});
+                    if (group.description) {
+                        body.appendChild(createElement('p', {}, group.description));
+                    }
+                    if ((group.cookies || []).length) {
+                        var details = createElement('details', {'class': 'kkkonrad-gdpr-cookie-details'});
+                        details.appendChild(createElement(
+                            'summary',
+                            {},
+                            config.text.cookieDetails || 'Show cookie details'
+                        ));
+                        var list = createElement('ul');
+                        group.cookies.forEach(function (cookie) {
+                            var item = createElement('li');
+                            item.appendChild(createElement('span', {'class': 'kkkonrad-gdpr-cookie-name'}, cookie.name));
+                            if (cookie.description) {
+                                item.appendChild(createElement(
+                                    'span',
+                                    {'class': 'kkkonrad-gdpr-cookie-desc'},
+                                    cookie.description
+                                ));
+                            }
+                            list.appendChild(item);
+                        });
+                        details.appendChild(list);
+                        body.appendChild(details);
+                    }
+                    label.appendChild(body);
                 }
-                legend.appendChild(label);
-                fieldset.appendChild(legend);
-                if (group.description) {
-                    fieldset.appendChild(createElement('p', {}, group.description));
-                }
-                if ((group.cookies || []).length) {
-                    var list = createElement('ul');
-                    group.cookies.forEach(function (cookie) {
-                        list.appendChild(createElement('li', {}, cookie.name + (cookie.description ? ' — ' + cookie.description : '')));
-                    });
-                    fieldset.appendChild(list);
-                }
+
+                fieldset.appendChild(label);
                 groupsContainer.appendChild(fieldset);
             });
         }
