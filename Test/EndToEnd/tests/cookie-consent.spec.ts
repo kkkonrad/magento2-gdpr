@@ -72,8 +72,21 @@ test.describe('Kkkonrad GDPR cookie consent', () => {
     await expect(consent.rejectOptionalButton).toBeDisabled();
     releaseRequest();
     expect((await responsePromise).status()).toBe(200);
-    await expect(consent.settingsButton).toBeVisible();
-    await expect(consent.settingsButton).toBeFocused();
+    // Floating reopen control is optional (default off: settings_button_enabled = 0).
+    const root = page.locator('[data-kkkonrad-gdpr-cmp]');
+    const showSettings = await root.evaluate((el) => {
+      try {
+        return Boolean(JSON.parse(el.getAttribute('data-config') || '{}').showSettingsButton);
+      } catch (e) {
+        return false;
+      }
+    });
+    if (showSettings) {
+      await expect(consent.settingsButton).toBeVisible();
+      await expect(consent.settingsButton).toBeFocused();
+    } else {
+      await expect(consent.settingsButton).toBeHidden();
+    }
   });
 
   test('keeps the banner and dialog actions inside the viewport', async ({ page }) => {

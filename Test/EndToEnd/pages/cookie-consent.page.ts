@@ -34,7 +34,7 @@ export class CookieConsentPage {
   }
 
   get settingsButton(): Locator {
-    return this.page.getByRole('button', { name: /Cookie settings|Ustawienia cookies/i });
+    return this.page.getByRole('button', { name: /Cookie settings|Ustawienia (plików )?cookie/i });
   }
 
   async acceptAll(): Promise<void> {

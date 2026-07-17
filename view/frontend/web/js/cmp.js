@@ -368,13 +368,16 @@
                 return response.json();
             }).then(function (response) {
                 choices = response.choices;
+                hasCurrentDecision = true;
                 banner.hidden = true;
-                settings.hidden = false;
+                settings.hidden = !config.showSettingsButton;
                 updateLockScreen(false);
                 closeDialog();
                 setSaving(false);
                 applyDecision();
-                settings.focus();
+                if (!settings.hidden) {
+                    settings.focus();
+                }
             }).catch(function () {
                 setSaving(false);
                 live.textContent = config.text.error;
@@ -396,7 +399,14 @@
         function setBannerVisibility(visible) {
             var shouldShow = Boolean(visible && !hasCurrentDecision && config.showBanner);
             banner.hidden = !shouldShow;
-            settings.hidden = shouldShow;
+            if (shouldShow) {
+                settings.hidden = true;
+            } else if (hasCurrentDecision) {
+                settings.hidden = !config.showSettingsButton;
+            } else {
+                // No saved decision and banner not shown: keep settings chip as entry point.
+                settings.hidden = false;
+            }
             updateLockScreen(shouldShow);
         }
 

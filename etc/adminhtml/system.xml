@@ -226,6 +226,11 @@
                     <label>Show Cookie Banner</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
+                <field id="settings_button_enabled" translate="label comment" type="select" sortOrder="35" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show Settings Button After Consent</label>
+                    <comment>When enabled, a floating button reopens cookie settings after the visitor has saved a choice. When disabled, use your own link calling window.kkkonradConsent.open() if re-access is required.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
                 <field id="rejected_tracking_enabled" translate="label comment" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Track Rejected Cookies</label>
                     <comment>Never stores cookie values. Enabling adds a small frontend and database overhead.</comment>

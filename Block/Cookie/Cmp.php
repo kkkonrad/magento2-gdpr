@@ -49,6 +49,11 @@ class Cmp extends Template
             'policy' => $policy['public_id'],
             'groups' => $this->getLocalizedGroups($storeId),
             'showBanner' => $this->featureManager->isEnabled(FeatureCode::COOKIE_BANNER, $storeId),
+            'showSettingsButton' => $this->scopeConfig->isSetFlag(
+                'kkkonrad_gdpr/cookie/settings_button_enabled',
+                ScopeInterface::SCOPE_STORE,
+                $storeId
+            ),
             'lockScreen' => $this->scopeConfig->isSetFlag(
                 'kkkonrad_gdpr/cookie/lock_screen_enabled',
                 ScopeInterface::SCOPE_STORE,

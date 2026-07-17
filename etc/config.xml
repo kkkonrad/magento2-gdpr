@@ -48,6 +48,7 @@
                 <disabled_fallback>deny_optional</disabled_fallback>
                 <disabled_fallback_legal_ack>0</disabled_fallback_legal_ack>
                 <banner_enabled>1</banner_enabled>
+                <settings_button_enabled>0</settings_button_enabled>
                 <rejected_tracking_enabled>0</rejected_tracking_enabled>
                 <track_unknown_only>1</track_unknown_only>
                 <geolocation_enabled>0</geolocation_enabled>
