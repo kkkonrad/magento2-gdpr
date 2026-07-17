@@ -5,14 +5,12 @@ namespace Kkkonrad\Gdpr\Application\DataRights;
 
 use DomainException;
 use Kkkonrad\Gdpr\Api\DataRights\ReauthenticationInterface;
-use Magento\Customer\Api\AccountManagementInterface;
-use Magento\Customer\Api\CustomerRepositoryInterface;
+use Magento\Customer\Model\AuthenticationInterface;
 
 class PasswordReauthentication implements ReauthenticationInterface
 {
     public function __construct(
-        private readonly AccountManagementInterface $accountManagement,
-        private readonly CustomerRepositoryInterface $customerRepository
+        private readonly AuthenticationInterface $authentication
     ) {
     }
 
@@ -28,7 +26,9 @@ class PasswordReauthentication implements ReauthenticationInterface
         if ($credential === null || $credential === '') {
             throw new DomainException((string)__('Current password is required.'));
         }
-        $customer = $this->customerRepository->getById($customerId);
-        $this->accountManagement->authenticate((string)$customer->getEmail(), $credential);
+        // Validate the credential without dispatching Magento's full login event sequence.
+        // AccountManagement::authenticate() is intended for a new login and can mutate the
+        // active persistent/session state when it is called from an already authenticated request.
+        $this->authentication->authenticate($customerId, $credential);
     }
 }

@@ -8,6 +8,7 @@ use Kkkonrad\Gdpr\Api\Consent\ConsentDefinitionManagementInterface;
 use Kkkonrad\Gdpr\Domain\Consent\ConsentContentSanitizer;
 use Kkkonrad\Gdpr\Domain\Consent\ConsentLocation;
 use Magento\Framework\App\ResourceConnection;
+use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Throwable;
 
@@ -17,7 +18,8 @@ class ConsentDefinitionManagement implements ConsentDefinitionManagementInterfac
 
     public function __construct(
         private readonly ResourceConnection $resourceConnection,
-        private readonly ConsentContentSanitizer $contentSanitizer
+        private readonly ConsentContentSanitizer $contentSanitizer,
+        private readonly TypeListInterface $cacheTypeList
     ) {
     }
 
@@ -75,12 +77,13 @@ class ConsentDefinitionManagement implements ConsentDefinitionManagementInterfac
                 'is_active' => (int)$isActiveInStore,
             ], ['content', 'is_active']);
             $connection->commit();
-
-            return $definitionId;
         } catch (Throwable $exception) {
             $connection->rollBack();
             throw $exception;
         }
+
+        $this->invalidateFrontendCache();
+        return $definitionId;
     }
 
     public function publish(int $definitionId, int $storeId): int
@@ -137,12 +140,13 @@ class ConsentDefinitionManagement implements ConsentDefinitionManagementInterfac
             ]);
             $versionId = (int)$connection->fetchOne('SELECT LAST_INSERT_ID()');
             $connection->commit();
-
-            return $versionId;
         } catch (Throwable $exception) {
             $connection->rollBack();
             throw $exception;
         }
+
+        $this->invalidateFrontendCache();
+        return $versionId;
     }
 
     private function validate(
@@ -174,5 +178,11 @@ class ConsentDefinitionManagement implements ConsentDefinitionManagementInterfac
                 ->from($table, ['definition_id'])
                 ->where('definition_id = ?', $definitionId)
         );
+    }
+
+    private function invalidateFrontendCache(): void
+    {
+        $this->cacheTypeList->cleanType('block_html');
+        $this->cacheTypeList->cleanType('full_page');
     }
 }

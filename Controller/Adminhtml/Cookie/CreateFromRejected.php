@@ -33,6 +33,20 @@ class CreateFromRejected extends Action
             if ($row === false) {
                 throw new \DomainException('The rejected cookie diagnostic no longer exists.');
             }
+            $cookieTable = $this->resourceConnection->getTableName('kkkonrad_gdpr_cookie');
+            $existingId = $this->resourceConnection->getConnection()->fetchOne(
+                $this->resourceConnection->getConnection()->select()
+                    ->from($cookieTable, ['cookie_id'])
+                    ->where('storage_type = ?', 'cookie')
+                    ->where('code_pattern = ?', (string)$row['cookie_name'])
+                    ->limit(1)
+            );
+            if ($existingId !== false) {
+                $this->messageManager->addSuccessMessage(
+                    (string)__('An inactive cookie draft already exists for this diagnostic.')
+                );
+                return $this->resultRedirectFactory->create()->setPath('*/*/index');
+            }
             $this->catalogManagement->saveCookie(
                 null,
                 (int)$this->getRequest()->getParam('group_id'),

@@ -1,3 +1,7 @@
+.kkkonrad-gdpr-cmp [hidden] {
+    display: none !important;
+}
+
 .kkkonrad-gdpr-cmp .kkkonrad-gdpr-banner {
     position: fixed;
     z-index: 10000;

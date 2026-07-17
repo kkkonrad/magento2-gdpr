@@ -8,7 +8,6 @@ use Kkkonrad\Gdpr\Api\Cookie\CookieRegistryInterface;
 use Kkkonrad\Gdpr\Api\FeatureManagerInterface;
 use Kkkonrad\Gdpr\Domain\Shared\Feature\FeatureCode;
 use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Framework\Data\Form\FormKey;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\View\Element\Template;
 use Magento\Store\Model\ScopeInterface;
@@ -24,7 +23,6 @@ class Cmp extends Template
         private readonly CookiePolicyVersionProviderInterface $policyVersionProvider,
         private readonly StoreManagerInterface $storeManager,
         private readonly ScopeConfigInterface $scopeConfig,
-        private readonly FormKey $formKey,
         private readonly Json $json,
         array $data = []
     ) {
@@ -48,7 +46,6 @@ class Cmp extends Template
             'endpoint' => $this->getUrl('gdpr/consent/save'),
             'rejectedEndpoint' => $this->getUrl('gdpr/rejected/report'),
             'regionEndpoint' => $this->getUrl('gdpr/region/resolve'),
-            'formKey' => $this->formKey->getFormKey(),
             'policy' => $policy['public_id'],
             'groups' => $this->cookieRegistry->getGroups($storeId),
             'showBanner' => $this->featureManager->isEnabled(FeatureCode::COOKIE_BANNER, $storeId),

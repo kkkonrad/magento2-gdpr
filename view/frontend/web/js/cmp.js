@@ -14,6 +14,10 @@
         return null;
     }
 
+    function currentFormKey() {
+        return readCookie('form_key') || '';
+    }
+
     function readUnsignedPayload(token) {
         if (!token || token.indexOf('.') < 0) {
             return null;
@@ -272,7 +276,7 @@
             window.fetch(config.rejectedEndpoint, {
                 method: 'POST',
                 credentials: 'same-origin',
-                headers: {'Content-Type': 'application/json', 'X-Form-Key': config.formKey},
+                headers: {'Content-Type': 'application/json', 'X-Form-Key': currentFormKey()},
                 body: JSON.stringify({names: names, domain: window.location.hostname})
             }).catch(function () {
                 // Diagnostics never block the storefront or the user's decision.
@@ -284,7 +288,7 @@
             window.fetch(config.endpoint, {
                 method: 'POST',
                 credentials: 'same-origin',
-                headers: {'Content-Type': 'application/json', 'X-Form-Key': config.formKey},
+                headers: {'Content-Type': 'application/json', 'X-Form-Key': currentFormKey()},
                 body: JSON.stringify({choices: choices})
             }).then(function (response) {
                 if (!response.ok) {

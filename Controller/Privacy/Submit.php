@@ -36,6 +36,7 @@ class Submit implements HttpPostActionInterface
             return $redirect->setPath('customer/account/login');
         }
         try {
+            $customerId = (int)$this->customerSession->getCustomerId();
             $password = $this->request->getParam('current_password');
             $type = (string)$this->request->getParam('type');
             if (in_array($type, ['anonymize', 'erase'], true)
@@ -46,12 +47,12 @@ class Submit implements HttpPostActionInterface
                 );
             }
             $this->reauthentication->reauthenticate(
-                (int)$this->customerSession->getCustomerId(),
+                $customerId,
                 (int)$this->storeManager->getStore()->getId(),
                 is_string($password) ? $password : null
             );
             $this->requestSubmission->submit(
-                (int)$this->customerSession->getCustomerId(),
+                $customerId,
                 $type,
                 (int)$this->storeManager->getStore()->getId()
             );

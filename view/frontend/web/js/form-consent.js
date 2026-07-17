@@ -4,7 +4,7 @@
     var selectors = {
         registration: 'form.form-create-account',
         newsletter: 'form#newsletter-validate-detail',
-        contact: 'form#contact-form',
+        contact: 'form#contact-form, form#contact',
         checkout: 'form[data-kkkonrad-gdpr-location="checkout"]'
     };
 

@@ -32,21 +32,6 @@
     <preference for="Kkkonrad\Gdpr\Api\Geo\RegionResolverInterface"
                 type="Kkkonrad\Gdpr\Application\Geo\HeaderRegionResolver"/>
 
-    <virtualType name="Kkkonrad\Gdpr\Model\ResourceModel\Request\Grid\Collection"
-                 type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
-        <arguments>
-            <argument name="mainTable" xsi:type="string">kkkonrad_gdpr_request</argument>
-            <argument name="resourceModel" xsi:type="string">Kkkonrad\Gdpr\Model\ResourceModel\Request</argument>
-        </arguments>
-    </virtualType>
-    <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
-        <arguments>
-            <argument name="collections" xsi:type="array">
-                <item name="kkkonrad_gdpr_request_listing_data_source" xsi:type="string">Kkkonrad\Gdpr\Model\ResourceModel\Request\Grid\Collection</item>
-            </argument>
-        </arguments>
-    </type>
-
     <type name="Magento\Framework\Console\CommandListInterface">
         <arguments>
             <argument name="commands" xsi:type="array">
