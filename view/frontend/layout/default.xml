@@ -2,9 +2,9 @@
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <head>
-        <css src="Kkkonrad_Gdpr::css/cmp.css" ifconfig="kkkonrad_gdpr/general/enabled"/>
-        <script src="Kkkonrad_Gdpr::js/cmp.js" ifconfig="kkkonrad_gdpr/general/enabled"/>
-        <script src="Kkkonrad_Gdpr::js/form-consent.js" ifconfig="kkkonrad_gdpr/general/enabled"/>
+        <css src="Kkkonrad_Gdpr::css/cmp.css"/>
+        <script src="Kkkonrad_Gdpr::js/cmp.js"/>
+        <script src="Kkkonrad_Gdpr::js/form-consent.js"/>
     </head>
     <body>
         <referenceBlock name="head.additional">

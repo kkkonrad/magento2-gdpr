@@ -7,7 +7,11 @@ export default defineConfig({
   use: {
     baseURL: process.env.GDPR_BASE_URL || 'https://m10626.app-on-demand.net/',
     trace: 'retain-on-failure',
-    ignoreHTTPSErrors: true
+    ignoreHTTPSErrors: true,
+    launchOptions: {
+      executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH
+        || '/var/www/.cache/ms-playwright/chromium-1187/chrome-linux/chrome'
+    }
   },
   projects: [
     { name: 'chromium-desktop', use: { ...devices['Desktop Chrome'] } },

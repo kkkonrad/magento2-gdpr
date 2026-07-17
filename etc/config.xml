@@ -73,16 +73,16 @@
                 <debug_enabled>0</debug_enabled>
             </google_consent>
             <email>
-                <request_submitted_template>kkkonrad_gdpr_request_submitted</request_submitted_template>
-                <request_approved_template>kkkonrad_gdpr_request_approved</request_approved_template>
-                <request_rejected_template>kkkonrad_gdpr_request_rejected</request_rejected_template>
-                <request_completed_template>kkkonrad_gdpr_request_completed</request_completed_template>
-                <request_failed_template>kkkonrad_gdpr_request_failed</request_failed_template>
+                <request_submitted_template>kkkonrad_gdpr_email_request_submitted_template</request_submitted_template>
+                <request_approved_template>kkkonrad_gdpr_email_request_approved_template</request_approved_template>
+                <request_rejected_template>kkkonrad_gdpr_email_request_rejected_template</request_rejected_template>
+                <request_completed_template>kkkonrad_gdpr_email_request_completed_template</request_completed_template>
+                <request_failed_template>kkkonrad_gdpr_email_request_failed_template</request_failed_template>
                 <admin_alerts_enabled>0</admin_alerts_enabled>
                 <admin_alert_role_ids></admin_alert_role_ids>
-                <admin_erasure_template>kkkonrad_gdpr_admin_erasure</admin_erasure_template>
-                <admin_failure_template>kkkonrad_gdpr_admin_failure</admin_failure_template>
-                <request_retention_warning_template>kkkonrad_gdpr_retention_warning</request_retention_warning_template>
+                <admin_erasure_template>kkkonrad_gdpr_email_admin_erasure_template</admin_erasure_template>
+                <admin_failure_template>kkkonrad_gdpr_email_admin_failure_template</admin_failure_template>
+                <request_retention_warning_template>kkkonrad_gdpr_email_request_retention_warning_template</request_retention_warning_template>
             </email>
         </kkkonrad_gdpr>
     </default>

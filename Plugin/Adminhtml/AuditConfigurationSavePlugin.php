@@ -61,15 +61,20 @@ class AuditConfigurationSavePlugin
     /** @return array{string, int} */
     private function resolveScope(Config $config): array
     {
-        $storeCode = trim($config->getStore());
+        $storeCode = $this->normalizeScopeCode($config->getStore());
         if ($storeCode !== '') {
             return ['stores', (int)$this->storeManager->getStore($storeCode)->getId()];
         }
-        $websiteCode = trim($config->getWebsite());
+        $websiteCode = $this->normalizeScopeCode($config->getWebsite());
         if ($websiteCode !== '') {
             return ['websites', (int)$this->storeManager->getWebsite($websiteCode)->getId()];
         }
         return ['default', 0];
+    }
+
+    private function normalizeScopeCode(mixed $value): string
+    {
+        return is_string($value) || is_int($value) ? trim((string)$value) : '';
     }
 
     /** @return array<string, string> */
