@@ -21,15 +21,31 @@ export class CookieConsentPage {
     return this.page.getByRole('dialog');
   }
 
+  get acceptAllButton(): Locator {
+    return this.banner.getByRole('button', { name: /Accept all|Akceptuj wszystkie/i });
+  }
+
+  get rejectOptionalButton(): Locator {
+    return this.banner.getByRole('button', { name: /Reject optional|Odrzuć opcjonalne/i });
+  }
+
+  get customizeButton(): Locator {
+    return this.banner.getByRole('button', { name: /Customize|Dostosuj/i });
+  }
+
+  get settingsButton(): Locator {
+    return this.page.getByRole('button', { name: /Cookie settings|Ustawienia cookies/i });
+  }
+
   async acceptAll(): Promise<void> {
-    await this.banner.getByRole('button', { name: /Accept all|Akceptuj wszystkie/i }).click();
+    await this.acceptAllButton.click();
   }
 
   async rejectOptional(): Promise<void> {
-    await this.banner.getByRole('button', { name: /Reject optional|Odrzuć opcjonalne/i }).click();
+    await this.rejectOptionalButton.click();
   }
 
   async customize(): Promise<void> {
-    await this.banner.getByRole('button', { name: /Customize|Dostosuj/i }).click();
+    await this.customizeButton.click();
   }
 }

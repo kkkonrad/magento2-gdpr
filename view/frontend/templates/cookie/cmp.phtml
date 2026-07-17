@@ -17,8 +17,10 @@ if (!$block->isEnabled()) {
      hidden>
     <div class="kkkonrad-gdpr-lock-overlay" data-role="lock-overlay" hidden></div>
     <section class="kkkonrad-gdpr-banner" data-role="banner" aria-label="<?= $escaper->escapeHtmlAttr(__('Cookie consent')) ?>">
-        <p data-role="banner-text"></p>
-        <p><a data-role="privacy-link"></a></p>
+        <div class="kkkonrad-gdpr-banner-content">
+            <p class="kkkonrad-gdpr-banner-text" data-role="banner-text"></p>
+            <a class="kkkonrad-gdpr-policy-link" data-role="privacy-link"></a>
+        </div>
         <div class="kkkonrad-gdpr-actions">
             <button type="button" data-action="accept-all"></button>
             <button type="button" data-action="reject-optional"></button>
@@ -29,16 +31,20 @@ if (!$block->isEnabled()) {
             aria-modal="true"
             aria-labelledby="kkkonrad-gdpr-modal-title"
             aria-describedby="kkkonrad-gdpr-modal-description">
-        <form method="dialog">
-            <button type="submit" class="kkkonrad-gdpr-close" data-action="close">
-                <span class="screen-reader-text"></span><span aria-hidden="true">×</span>
-            </button>
-        </form>
-        <h2 id="kkkonrad-gdpr-modal-title" data-role="modal-title"></h2>
-        <p id="kkkonrad-gdpr-modal-description" data-role="modal-text"></p>
-        <div data-role="groups"></div>
-        <button type="button" data-action="save"></button>
+        <div class="kkkonrad-gdpr-dialog-header">
+            <form method="dialog" class="kkkonrad-gdpr-close-form">
+                <button type="submit" class="kkkonrad-gdpr-close" data-action="close">
+                    <span class="kkkonrad-gdpr-visually-hidden"></span><span aria-hidden="true">×</span>
+                </button>
+            </form>
+            <h2 id="kkkonrad-gdpr-modal-title" data-role="modal-title" tabindex="-1"></h2>
+            <p id="kkkonrad-gdpr-modal-description" data-role="modal-text"></p>
+        </div>
+        <div class="kkkonrad-gdpr-dialog-body" data-role="groups"></div>
+        <div class="kkkonrad-gdpr-dialog-footer">
+            <button type="button" data-action="save"></button>
+        </div>
     </dialog>
-    <button type="button" class="kkkonrad-gdpr-settings" data-action="open-settings"></button>
-    <p class="kkkonrad-gdpr-live" data-role="live" role="status" aria-live="polite"></p>
+    <button type="button" class="kkkonrad-gdpr-settings" data-action="open-settings" hidden></button>
+    <p class="kkkonrad-gdpr-live" data-role="live" role="status" aria-live="polite" hidden></p>
 </div>

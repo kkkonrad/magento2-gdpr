@@ -36,17 +36,61 @@ test.describe('Kkkonrad GDPR cookie consent', () => {
   test('offers equivalent reject and customize actions with an accessible dialog', async ({ page }) => {
     const consent = new CookieConsentPage(page);
     await page.evaluate(() => { document.cookie = 'e2e_unknown_cookie=diagnostic; path=/'; });
+    await expect(consent.acceptAllButton).toBeVisible();
+    await expect(consent.rejectOptionalButton).toBeVisible();
+    await expect(consent.customizeButton).toBeVisible();
     await consent.customize();
     await expect(consent.dialog).toBeVisible();
+    await expect(consent.dialog.getByRole('heading', { level: 2 })).toBeFocused();
+    await expect(consent.dialog.getByRole('group').first()).toHaveAccessibleName(/.+/);
     await expect(consent.dialog.getByRole('checkbox').first()).toBeDisabled();
     await page.keyboard.press('Escape');
     await expect(consent.dialog).toBeHidden();
-    const reportPromise = page.waitForResponse(response => response.url().includes('/gdpr/rejected/report'));
+    await expect(consent.customizeButton).toBeFocused();
+    const responsePromise = page.waitForResponse(response => response.url().includes('/gdpr/consent/save'));
     await consent.rejectOptional();
-    const report = await reportPromise;
-    expect(report.status()).toBe(200);
+    expect((await responsePromise).status()).toBe(200);
     await expect.poll(() => page.evaluate(() => window.kkkonradConsent.has('marketing'))).toBe(false);
     await expect.poll(() => page.evaluate(() => window.kkkonradConsent.has('essential'))).toBe(true);
+  });
+
+  test('prevents duplicate decisions while a save is pending', async ({ page }) => {
+    const consent = new CookieConsentPage(page);
+    let releaseRequest!: () => void;
+    const requestGate = new Promise<void>(resolve => { releaseRequest = resolve; });
+    await page.route('**/gdpr/consent/save**', async route => {
+      await requestGate;
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ choices: route.request().postDataJSON().choices })
+      });
+    });
+    const responsePromise = page.waitForResponse(response => response.url().includes('/gdpr/consent/save'));
+    await consent.acceptAllButton.click();
+    await expect(consent.acceptAllButton).toBeDisabled();
+    await expect(consent.rejectOptionalButton).toBeDisabled();
+    releaseRequest();
+    expect((await responsePromise).status()).toBe(200);
+    await expect(consent.settingsButton).toBeVisible();
+    await expect(consent.settingsButton).toBeFocused();
+  });
+
+  test('keeps the banner and dialog actions inside the viewport', async ({ page }) => {
+    const consent = new CookieConsentPage(page);
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    for (const button of [consent.acceptAllButton, consent.rejectOptionalButton, consent.customizeButton]) {
+      const box = await button.boundingBox();
+      expect(box).not.toBeNull();
+      expect(box!.x).toBeGreaterThanOrEqual(0);
+      expect(box!.x + box!.width).toBeLessThanOrEqual(await page.evaluate(() => window.innerWidth));
+    }
+    await consent.customize();
+    const dialogBox = await consent.dialog.boundingBox();
+    expect(dialogBox).not.toBeNull();
+    expect(dialogBox!.y).toBeGreaterThanOrEqual(0);
+    expect(dialogBox!.y + dialogBox!.height).toBeLessThanOrEqual(await page.evaluate(() => window.innerHeight));
+    await expect(consent.dialog.getByRole('button', { name: /Save preferences|Zapisz preferencje/i })).toBeVisible();
   });
 
   test('executes a gated script only after consent', async ({ page }) => {

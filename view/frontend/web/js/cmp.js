@@ -57,6 +57,10 @@
         var live = root.querySelector('[data-role="live"]');
         var groupsContainer = root.querySelector('[data-role="groups"]');
         var lockOverlay = root.querySelector('[data-role="lock-overlay"]');
+        var settings = root.querySelector('[data-action="open-settings"]');
+        var modalTitle = root.querySelector('[data-role="modal-title"]');
+        var restoreFocusTo = null;
+        var saving = false;
         var savedPayload = readUnsignedPayload(readCookie(COOKIE_NAME));
         var hasCurrentDecision = savedPayload
             && savedPayload.policy === config.policy
@@ -76,7 +80,7 @@
         root.querySelector('[data-action="customize"]').textContent = config.text.customize;
         root.querySelector('[data-action="save"]').textContent = config.text.save;
         root.querySelector('[data-action="open-settings"]').textContent = config.text.settings;
-        root.querySelector('[data-action="close"] .screen-reader-text').textContent = config.text.close;
+        root.querySelector('[data-action="close"] .kkkonrad-gdpr-visually-hidden').textContent = config.text.close;
         root.querySelector('[data-role="privacy-link"]').textContent = config.text.privacy;
         root.querySelector('[data-role="privacy-link"]').setAttribute('href', config.privacyUrl);
 
@@ -90,6 +94,7 @@
             groupsContainer.replaceChildren();
             (config.groups || []).forEach(function (group) {
                 var fieldset = createElement('fieldset', {'class': 'kkkonrad-gdpr-group'});
+                var legend = createElement('legend');
                 var label = createElement('label');
                 var checkbox = createElement('input', {
                     type: 'checkbox',
@@ -101,25 +106,42 @@
                     choices[group.code] = checkbox.checked;
                 });
                 label.appendChild(checkbox);
-                label.appendChild(document.createTextNode(' ' + group.name));
-                fieldset.appendChild(label);
-                fieldset.appendChild(createElement('p', {}, group.description || ''));
-                var list = createElement('ul');
-                (group.cookies || []).forEach(function (cookie) {
-                    list.appendChild(createElement('li', {}, cookie.name + (cookie.description ? ' — ' + cookie.description : '')));
-                });
-                fieldset.appendChild(list);
+                label.appendChild(createElement('span', {}, group.name));
+                if (group.is_required) {
+                    label.appendChild(createElement('span', {'class': 'kkkonrad-gdpr-required'}, config.text.required));
+                }
+                legend.appendChild(label);
+                fieldset.appendChild(legend);
+                if (group.description) {
+                    fieldset.appendChild(createElement('p', {}, group.description));
+                }
+                if ((group.cookies || []).length) {
+                    var list = createElement('ul');
+                    group.cookies.forEach(function (cookie) {
+                        list.appendChild(createElement('li', {}, cookie.name + (cookie.description ? ' — ' + cookie.description : '')));
+                    });
+                    fieldset.appendChild(list);
+                }
                 groupsContainer.appendChild(fieldset);
             });
         }
 
+        function restoreDialogFocus() {
+            if (restoreFocusTo && restoreFocusTo.isConnected && !restoreFocusTo.closest('[hidden]')) {
+                restoreFocusTo.focus();
+            }
+            restoreFocusTo = null;
+        }
+
         function openDialog() {
+            restoreFocusTo = document.activeElement;
             renderGroups();
             if (typeof dialog.showModal === 'function') {
                 dialog.showModal();
             } else {
                 dialog.setAttribute('open', 'open');
             }
+            modalTitle.focus();
         }
 
         function closeDialog() {
@@ -127,8 +149,11 @@
                 dialog.close();
             } else {
                 dialog.removeAttribute('open');
+                restoreDialogFocus();
             }
         }
+
+        dialog.addEventListener('close', restoreDialogFocus);
 
         function deleteCookie(name) {
             var paths = ['/'];
@@ -283,8 +308,21 @@
             });
         }
 
+        function setSaving(isSaving) {
+            saving = isSaving;
+            root.setAttribute('aria-busy', isSaving ? 'true' : 'false');
+            ['accept-all', 'reject-optional', 'save'].forEach(function (action) {
+                root.querySelector('[data-action="' + action + '"]').disabled = isSaving;
+            });
+        }
+
         function save() {
+            if (saving) {
+                return;
+            }
             live.textContent = '';
+            live.hidden = true;
+            setSaving(true);
             window.fetch(config.endpoint, {
                 method: 'POST',
                 credentials: 'same-origin',
@@ -298,11 +336,16 @@
             }).then(function (response) {
                 choices = response.choices;
                 banner.hidden = true;
+                settings.hidden = false;
                 updateLockScreen(false);
                 closeDialog();
+                setSaving(false);
                 applyDecision();
+                settings.focus();
             }).catch(function () {
+                setSaving(false);
                 live.textContent = config.text.error;
+                live.hidden = false;
             });
         }
 
@@ -320,6 +363,7 @@
         function setBannerVisibility(visible) {
             var shouldShow = Boolean(visible && !hasCurrentDecision && config.showBanner);
             banner.hidden = !shouldShow;
+            settings.hidden = shouldShow;
             updateLockScreen(shouldShow);
         }
 
