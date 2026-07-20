@@ -32,6 +32,17 @@
     <preference for="Kkkonrad\Gdpr\Api\Geo\RegionResolverInterface"
                 type="Kkkonrad\Gdpr\Application\Geo\HeaderRegionResolver"/>
 
+    <type name="Magento\Checkout\Api\PaymentInformationManagementInterface">
+        <plugin name="kkkonrad_gdpr_checkout_consent"
+                type="Kkkonrad\Gdpr\Plugin\Consent\CheckoutConsentPlugin"
+                sortOrder="10"/>
+    </type>
+    <type name="Magento\Checkout\Api\GuestPaymentInformationManagementInterface">
+        <plugin name="kkkonrad_gdpr_guest_checkout_consent"
+                type="Kkkonrad\Gdpr\Plugin\Consent\GuestCheckoutConsentPlugin"
+                sortOrder="10"/>
+    </type>
+
     <type name="Magento\Framework\Console\CommandListInterface">
         <arguments>
             <argument name="commands" xsi:type="array">

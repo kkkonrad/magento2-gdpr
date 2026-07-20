@@ -24,7 +24,12 @@ class Grid extends Template
     /** @return array<int, array<string, mixed>> */
     public function getGroups(): array
     {
-        return $this->cookieRegistry->getGroups(0);
+        return $this->cookieRegistry->getGroups($this->getStoreId());
+    }
+
+    public function getStoreId(): int
+    {
+        return max(0, (int)$this->request->getParam('store_id', 0));
     }
 
     /** @return array<int, array<string, mixed>> */

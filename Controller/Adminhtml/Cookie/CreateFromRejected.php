@@ -24,6 +24,7 @@ class CreateFromRejected extends Action implements HttpPostActionInterface
 
     public function execute()
     {
+        $storeId = max(0, (int)$this->getRequest()->getParam('store_id'));
         try {
             $table = $this->resourceConnection->getTableName('kkkonrad_gdpr_rejected_cookie');
             $row = $this->resourceConnection->getConnection()->fetchRow(
@@ -34,6 +35,7 @@ class CreateFromRejected extends Action implements HttpPostActionInterface
             if ($row === false) {
                 throw new \DomainException('The rejected cookie diagnostic no longer exists.');
             }
+            $storeId = max(0, (int)$row['store_id']);
             $cookieTable = $this->resourceConnection->getTableName('kkkonrad_gdpr_cookie');
             $existing = $this->resourceConnection->getConnection()->fetchRow(
                 $this->resourceConnection->getConnection()->select()
@@ -46,7 +48,9 @@ class CreateFromRejected extends Action implements HttpPostActionInterface
                 $this->messageManager->addSuccessMessage(
                     (string)__('An inactive cookie draft already exists for this diagnostic.')
                 );
-                return $this->resultRedirectFactory->create()->setPath('*/*/index');
+                return $this->resultRedirectFactory->create()->setPath('*/*/index', [
+                    'store_id' => $storeId,
+                ]);
             }
             $this->catalogManagement->saveCookie(
                 null,
@@ -64,6 +68,8 @@ class CreateFromRejected extends Action implements HttpPostActionInterface
         } catch (Throwable $exception) {
             $this->messageManager->addErrorMessage($exception->getMessage());
         }
-        return $this->resultRedirectFactory->create()->setPath('*/*/index');
+        return $this->resultRedirectFactory->create()->setPath('*/*/index', [
+            'store_id' => $storeId,
+        ]);
     }
 }

@@ -16,16 +16,6 @@
                 type="Kkkonrad\Gdpr\Plugin\Consent\ContactMailPlugin"
                 sortOrder="10"/>
     </type>
-    <type name="Magento\Checkout\Api\PaymentInformationManagementInterface">
-        <plugin name="kkkonrad_gdpr_checkout_consent"
-                type="Kkkonrad\Gdpr\Plugin\Consent\CheckoutConsentPlugin"
-                sortOrder="10"/>
-    </type>
-    <type name="Magento\Checkout\Api\GuestPaymentInformationManagementInterface">
-        <plugin name="kkkonrad_gdpr_guest_checkout_consent"
-                type="Kkkonrad\Gdpr\Plugin\Consent\GuestCheckoutConsentPlugin"
-                sortOrder="10"/>
-    </type>
     <type name="Magento\Checkout\Model\CompositeConfigProvider">
         <arguments>
             <argument name="configProviders" xsi:type="array">

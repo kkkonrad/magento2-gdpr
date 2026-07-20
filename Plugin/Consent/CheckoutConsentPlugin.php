@@ -6,7 +6,7 @@ namespace Kkkonrad\Gdpr\Plugin\Consent;
 use Kkkonrad\Gdpr\Application\Consent\FormConsentHandler;
 use Kkkonrad\Gdpr\Domain\Consent\ConsentLocation;
 use Magento\Checkout\Api\PaymentInformationManagementInterface;
-use Magento\Customer\Model\Session as CustomerSession;
+use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\AddressInterface;
 use Magento\Quote\Api\Data\PaymentInterface;
 
@@ -14,7 +14,7 @@ class CheckoutConsentPlugin
 {
     public function __construct(
         private readonly FormConsentHandler $formConsentHandler,
-        private readonly CustomerSession $customerSession
+        private readonly CartRepositoryInterface $cartRepository
     ) {
     }
 
@@ -29,8 +29,9 @@ class CheckoutConsentPlugin
             ConsentLocation::CHECKOUT,
             $this->extract($paymentMethod)
         );
-        $customerId = $this->customerSession->isLoggedIn()
-            ? (int)$this->customerSession->getCustomerId()
+        $quoteCustomerId = $this->cartRepository->getActive($cartId)->getCustomer()->getId();
+        $customerId = $quoteCustomerId !== null && (int)$quoteCustomerId > 0
+            ? (int)$quoteCustomerId
             : null;
         $this->formConsentHandler->record(ConsentLocation::CHECKOUT, $customerId);
 

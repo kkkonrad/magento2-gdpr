@@ -37,6 +37,8 @@ class SaveGroup extends Action implements HttpPostActionInterface
         } catch (Throwable $exception) {
             $this->messageManager->addErrorMessage($exception->getMessage());
         }
-        return $this->resultRedirectFactory->create()->setPath('*/*/index');
+        return $this->resultRedirectFactory->create()->setPath('*/*/index', [
+            'store_id' => max(0, (int)$this->getRequest()->getParam('store_id')),
+        ]);
     }
 }

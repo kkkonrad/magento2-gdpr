@@ -7,7 +7,15 @@ use Magento\Framework\Escaper;
 /** @var Grid $block */
 /** @var Escaper $escaper */
 $groups = $block->getGroups();
+$storeId = $block->getStoreId();
 ?>
+<div class="admin__page-section">
+    <form method="get">
+        <label for="gdpr-cookie-store-id"><?= $escaper->escapeHtml(__('Store view ID')) ?></label>
+        <input class="admin__control-text" id="gdpr-cookie-store-id" type="number" name="store_id" min="0" value="<?= $storeId ?>">
+        <button type="submit"><?= $escaper->escapeHtml(__('Load catalog')) ?></button>
+    </form>
+</div>
 <div class="admin__page-section">
     <h2><?= $escaper->escapeHtml(__('Create cookie group')) ?></h2>
     <form method="post" action="<?= $escaper->escapeUrl($block->getUrl('*/*/saveGroup')) ?>">
@@ -17,7 +25,7 @@ $groups = $block->getGroups();
         <input class="admin__control-text" name="name" required placeholder="<?= $escaper->escapeHtmlAttr(__('Displayed name')) ?>">
         <input class="admin__control-text" name="description" placeholder="<?= $escaper->escapeHtmlAttr(__('Description')) ?>">
         <input class="admin__control-text" type="number" name="priority" value="10" min="0">
-        <input class="admin__control-text" type="number" name="store_id" value="0" min="0">
+        <input class="admin__control-text" type="number" name="store_id" value="<?= $storeId ?>" min="0">
         <label><input type="checkbox" name="is_required" value="1"> <?= $escaper->escapeHtml(__('Required')) ?></label>
         <label><input type="checkbox" name="is_active" value="1" checked> <?= $escaper->escapeHtml(__('Active')) ?></label>
         <button class="action-primary" type="submit"><?= $escaper->escapeHtml(__('Save group')) ?></button>
@@ -35,7 +43,7 @@ $groups = $block->getGroups();
         <select class="admin__control-select" name="storage_type"><?php foreach (['cookie', 'local_storage', 'session_storage'] as $storageType): ?><option value="<?= $escaper->escapeHtmlAttr($storageType) ?>"><?= $escaper->escapeHtml(__($storageType)) ?></option><?php endforeach; ?></select>
         <input class="admin__control-text" type="number" name="lifetime" min="0" placeholder="<?= $escaper->escapeHtmlAttr(__('Lifetime in seconds')) ?>">
         <input class="admin__control-text" name="description" placeholder="<?= $escaper->escapeHtmlAttr(__('Description')) ?>">
-        <input class="admin__control-text" type="number" name="store_id" value="0" min="0">
+        <input class="admin__control-text" type="number" name="store_id" value="<?= $storeId ?>" min="0">
         <label><input type="checkbox" name="is_active" value="1" checked> <?= $escaper->escapeHtml(__('Active')) ?></label>
         <label><input type="checkbox" name="is_active_in_store" value="1" checked> <?= $escaper->escapeHtml(__('Active in store')) ?></label>
         <button class="action-primary" type="submit"><?= $escaper->escapeHtml(__('Save cookie')) ?></button>

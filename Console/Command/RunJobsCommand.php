@@ -7,6 +7,7 @@ use Kkkonrad\Gdpr\Application\DataRights\Anonymization\AnonymizationProcessor;
 use Kkkonrad\Gdpr\Application\DataRights\Erasure\ErasureProcessor;
 use Kkkonrad\Gdpr\Application\DataRights\Export\ExportGenerationProcessor;
 use Kkkonrad\Gdpr\Application\DataRights\Retention\OldOrdersProcessor;
+use Kkkonrad\Gdpr\Application\DataRights\Retention\AbandonedAccountsProcessor;
 use Kkkonrad\Gdpr\Application\DataRights\Retention\RetentionCandidateReporter;
 use Kkkonrad\Gdpr\Application\JobRunner;
 use Kkkonrad\Gdpr\Infrastructure\Persistence\JobQueue;
@@ -66,12 +67,18 @@ class RunJobsCommand extends Command
         if ($process !== 'all' && !isset(self::PROCESSES[$process])) {
             throw new InvalidArgumentException(sprintf('Unknown GDPR process "%s".', $process));
         }
-        $type = $process === 'all' ? null : self::PROCESSES[$process];
+        $types = $process === 'retention'
+            ? [OldOrdersProcessor::TYPE, AbandonedAccountsProcessor::TYPE]
+            : [$process === 'all' ? null : self::PROCESSES[$process]];
         $storeIds = $this->resolveStoreIds($input);
         if ((bool)$input->getOption(self::OPTION_DRY_RUN)) {
+            $queued = 0;
+            foreach ($types as $type) {
+                $queued += $this->jobQueue->countQueued($type, $storeIds);
+            }
             $output->writeln(sprintf(
                 '<info>Queued GDPR jobs: %d</info>',
-                $this->jobQueue->countQueued($type, $storeIds)
+                $queued
             ));
             if (in_array($process, ['all', 'retention'], true)) {
                 $rows = [];
@@ -93,7 +100,18 @@ class RunJobsCommand extends Command
             return Command::SUCCESS;
         }
 
-        $result = $this->jobRunner->run($limit, $type, $storeIds);
+        $result = ['processed' => 0, 'failed' => 0, 'retried' => 0, 'stopped_by_budget' => false];
+        foreach ($types as $type) {
+            $remaining = $limit - $result['processed'] - $result['failed'] - $result['retried'];
+            if ($remaining <= 0 || $result['stopped_by_budget']) {
+                break;
+            }
+            $partial = $this->jobRunner->run($remaining, $type, $storeIds);
+            $result['processed'] += $partial['processed'];
+            $result['failed'] += $partial['failed'];
+            $result['retried'] += $partial['retried'];
+            $result['stopped_by_budget'] = $partial['stopped_by_budget'];
+        }
         $output->writeln(sprintf(
             '<info>Processed: %d, retried: %d, failed: %d%s</info>',
             $result['processed'],

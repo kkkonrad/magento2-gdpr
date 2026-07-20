@@ -7,7 +7,9 @@ use Kkkonrad\Gdpr\Application\Consent\FormConsentHandler;
 use Kkkonrad\Gdpr\Domain\Consent\ConsentLocation;
 use Kkkonrad\Gdpr\Plugin\Consent\CheckoutConsentPlugin;
 use Magento\Checkout\Api\PaymentInformationManagementInterface;
-use Magento\Customer\Model\Session as CustomerSession;
+use Magento\Customer\Api\Data\CustomerInterface;
+use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Api\Data\PaymentInterface;
 use PHPUnit\Framework\TestCase;
 
@@ -29,12 +31,15 @@ class CheckoutConsentPluginTest extends TestCase
             ->willReturnCallback(static function () use (&$events): void {
                 $events[] = 'recorded';
             });
-        $session = $this->createMock(CustomerSession::class);
-        $session->method('isLoggedIn')->willReturn(true);
-        $session->method('getCustomerId')->willReturn(42);
+        $quote = $this->createMock(CartInterface::class);
+        $customer = $this->createMock(CustomerInterface::class);
+        $customer->method('getId')->willReturn(42);
+        $quote->method('getCustomer')->willReturn($customer);
+        $cartRepository = $this->createMock(CartRepositoryInterface::class);
+        $cartRepository->expects(self::once())->method('getActive')->with(7)->willReturn($quote);
         $payment = $this->createMock(PaymentInterface::class);
         $payment->method('getExtensionAttributes')->willReturn(null);
-        $plugin = new CheckoutConsentPlugin($handler, $session);
+        $plugin = new CheckoutConsentPlugin($handler, $cartRepository);
 
         $result = $plugin->aroundSavePaymentInformationAndPlaceOrder(
             $this->createMock(PaymentInformationManagementInterface::class),

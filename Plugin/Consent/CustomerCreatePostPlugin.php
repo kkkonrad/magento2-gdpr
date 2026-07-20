@@ -18,13 +18,13 @@ class CustomerCreatePostPlugin
     }
 
     /**
-     * @return array{CustomerInterface, string|null, string}
+     * @return array{CustomerInterface, string|null, string|null}
      */
     public function beforeCreateAccount(
         AccountManagementInterface $subject,
         CustomerInterface $customer,
         ?string $password = null,
-        string $redirectUrl = ''
+        ?string $redirectUrl = null
     ): array {
         if ($this->request->getFullActionName() === 'customer_account_createpost') {
             $this->formConsentHandler->validate(ConsentLocation::REGISTRATION);
