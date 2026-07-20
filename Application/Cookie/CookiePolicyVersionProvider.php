@@ -29,12 +29,23 @@ class CookiePolicyVersionProvider implements CookiePolicyVersionProviderInterfac
         $connection = $this->resourceConnection->getConnection();
         $current = $connection->fetchRow(
             $connection->select()
-                ->from($table, ['policy_version_id', 'public_id', 'version', 'configuration_hash'])
+                ->from($table, [
+                    'policy_version_id',
+                    'public_id',
+                    'version',
+                    'configuration_hash',
+                    'configuration_snapshot',
+                ])
                 ->where('store_id = ?', $storeId)
                 ->order('version DESC')
                 ->limit(1)
         );
-        if ($current !== false && hash_equals((string)$current['configuration_hash'], $configurationHash)) {
+        if ($current !== false
+            && is_string($current['configuration_snapshot'])
+            && $current['configuration_snapshot'] !== ''
+            && hash_equals((string)$current['configuration_hash'], $configurationHash)
+            && hash_equals($configurationHash, hash('sha256', $current['configuration_snapshot']))
+        ) {
             return $this->normalize($current);
         }
 
@@ -51,11 +62,18 @@ class CookiePolicyVersionProvider implements CookiePolicyVersionProviderInterfac
                 'public_id' => $this->randomIdGenerator->uuid(),
                 'version' => $lastVersion + 1,
                 'configuration_hash' => $configurationHash,
+                'configuration_snapshot' => $configuration,
             ]);
             $id = (int)$connection->fetchOne('SELECT LAST_INSERT_ID()');
             $row = $connection->fetchRow(
                 $connection->select()
-                    ->from($table, ['policy_version_id', 'public_id', 'version', 'configuration_hash'])
+                    ->from($table, [
+                        'policy_version_id',
+                        'public_id',
+                        'version',
+                        'configuration_hash',
+                        'configuration_snapshot',
+                    ])
                     ->where('policy_version_id = ?', $id)
             );
             $connection->commit();
@@ -69,7 +87,13 @@ class CookiePolicyVersionProvider implements CookiePolicyVersionProviderInterfac
 
     /**
      * @param array<string, mixed> $row
-     * @return array{policy_version_id:int, public_id:string, version:int, configuration_hash:string}
+     * @return array{
+     *     policy_version_id:int,
+     *     public_id:string,
+     *     version:int,
+     *     configuration_hash:string,
+     *     configuration_snapshot:string|null
+     * }
      */
     private function normalize(array $row): array
     {
@@ -78,6 +102,9 @@ class CookiePolicyVersionProvider implements CookiePolicyVersionProviderInterfac
             'public_id' => (string)($row['public_id'] ?? ''),
             'version' => (int)($row['version'] ?? 0),
             'configuration_hash' => (string)($row['configuration_hash'] ?? ''),
+            'configuration_snapshot' => isset($row['configuration_snapshot'])
+                ? (string)$row['configuration_snapshot']
+                : null,
         ];
     }
 }

@@ -6,9 +6,10 @@ namespace Kkkonrad\Gdpr\Controller\Adminhtml\Cookie;
 use Kkkonrad\Gdpr\Application\Cookie\CookieCatalogManagement;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\App\Action\HttpPostActionInterface;
 use Throwable;
 
-class SaveGroup extends Action
+class SaveGroup extends Action implements HttpPostActionInterface
 {
     public const ADMIN_RESOURCE = 'Kkkonrad_Gdpr::cookies_manage';
 

@@ -44,6 +44,7 @@ class Cmp extends Template
 
         return $this->json->serialize([
             'endpoint' => $this->getUrl('gdpr/consent/save'),
+            'stateEndpoint' => $this->getUrl('gdpr/consent/state'),
             'rejectedEndpoint' => $this->getUrl('gdpr/rejected/report'),
             'regionEndpoint' => $this->getUrl('gdpr/region/resolve'),
             'policy' => $policy['public_id'],

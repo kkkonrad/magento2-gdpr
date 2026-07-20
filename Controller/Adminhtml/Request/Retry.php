@@ -7,9 +7,10 @@ use Kkkonrad\Gdpr\Application\DataRights\RequestDecision;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Backend\Model\Auth\Session as AdminSession;
+use Magento\Framework\App\Action\HttpPostActionInterface;
 use Throwable;
 
-class Retry extends Action
+class Retry extends Action implements HttpPostActionInterface
 {
     public const ADMIN_RESOURCE = 'Kkkonrad_Gdpr::requests_retry';
 

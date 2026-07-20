@@ -6,6 +6,7 @@ namespace Kkkonrad\Gdpr\Test\Unit\Application;
 use Kkkonrad\Gdpr\Api\ConfigProviderInterface;
 use Kkkonrad\Gdpr\Application\JobRunner;
 use Kkkonrad\Gdpr\Domain\Shared\Job\JobContext;
+use Kkkonrad\Gdpr\Domain\Shared\Job\JobLeaseLostException;
 use Kkkonrad\Gdpr\Domain\Shared\Job\JobProcessorInterface;
 use Kkkonrad\Gdpr\Domain\Shared\Job\JobProcessorPool;
 use Kkkonrad\Gdpr\Infrastructure\Persistence\JobQueue;
@@ -22,8 +23,8 @@ class JobRunnerTest extends TestCase
         $queue = $this->createMock(JobQueue::class);
         $queue->expects(self::once())->method('releaseStaleClaims');
         $queue->expects(self::exactly(2))->method('claimNext')->willReturnOnConsecutiveCalls($this->row(), null);
-        $queue->expects(self::once())->method('markProcessing')->with(7);
-        $queue->expects(self::once())->method('complete')->with(7);
+        $queue->expects(self::once())->method('markProcessing')->with(7, self::isType('string'));
+        $queue->expects(self::once())->method('complete')->with(7, self::isType('string'));
         $processor = $this->createMock(JobProcessorInterface::class);
         $processor->expects(self::once())->method('process')->with(self::isInstanceOf(JobContext::class));
 
@@ -40,6 +41,7 @@ class JobRunnerTest extends TestCase
         $queue->method('claimNext')->willReturnOnConsecutiveCalls($this->row(null, 2), null);
         $queue->expects(self::once())->method('retryLater')->with(
             7,
+            self::isType('string'),
             120,
             'processing_retry_scheduled',
             self::isType('string')
@@ -61,6 +63,7 @@ class JobRunnerTest extends TestCase
         $queue->expects(self::never())->method('retryLater');
         $queue->expects(self::once())->method('fail')->with(
             7,
+            self::isType('string'),
             'processing_failed',
             self::isType('string')
         );
@@ -82,6 +85,7 @@ class JobRunnerTest extends TestCase
         $queue->expects(self::never())->method('markProcessing');
         $queue->expects(self::once())->method('retryLater')->with(
             7,
+            self::isType('string'),
             30,
             'subject_lock_busy',
             self::isType('string')
@@ -92,6 +96,22 @@ class JobRunnerTest extends TestCase
         $lockManager->method('lock')->willReturn(false);
 
         $result = $this->runner($queue, $processor, $lockManager)->run(5);
+
+        self::assertSame(1, $result['retried']);
+        self::assertSame(0, $result['failed']);
+    }
+
+    public function testLostLeaseDoesNotRunOrMutateTheJob(): void
+    {
+        $queue = $this->createMock(JobQueue::class);
+        $queue->method('claimNext')->willReturnOnConsecutiveCalls($this->row(), null);
+        $queue->method('markProcessing')->willThrowException(new JobLeaseLostException('lost'));
+        $queue->expects(self::never())->method('complete');
+        $queue->expects(self::never())->method('fail');
+        $processor = $this->createMock(JobProcessorInterface::class);
+        $processor->expects(self::never())->method('process');
+
+        $result = $this->runner($queue, $processor)->run(5);
 
         self::assertSame(1, $result['retried']);
         self::assertSame(0, $result['failed']);

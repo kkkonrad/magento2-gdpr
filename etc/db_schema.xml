@@ -312,6 +312,7 @@
         <column xsi:type="varchar" name="public_id" length="36" nullable="false" comment="Public UUID"/>
         <column xsi:type="int" name="version" unsigned="true" nullable="false" comment="Version Number"/>
         <column xsi:type="varchar" name="configuration_hash" length="64" nullable="false" comment="SHA-256 Configuration Hash"/>
+        <column xsi:type="text" name="configuration_snapshot" nullable="true" comment="Immutable Cookie Policy Configuration JSON"/>
         <column xsi:type="timestamp" name="published_at" nullable="false" default="CURRENT_TIMESTAMP" comment="Published At"/>
         <constraint xsi:type="primary" referenceId="PRIMARY"><column name="policy_version_id"/></constraint>
         <constraint xsi:type="unique" referenceId="KKKONRAD_GDPR_COOKIE_POLICY_PUBLIC_ID"><column name="public_id"/></constraint>

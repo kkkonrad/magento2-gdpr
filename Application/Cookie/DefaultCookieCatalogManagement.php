@@ -5,6 +5,7 @@ namespace Kkkonrad\Gdpr\Application\Cookie;
 
 use Kkkonrad\Gdpr\Api\Cookie\CookiePolicyVersionProviderInterface;
 use Kkkonrad\Gdpr\Domain\Cookie\DefaultCookieCatalog;
+use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\ResourceConnection;
 use Throwable;
 
@@ -13,7 +14,8 @@ class DefaultCookieCatalogManagement
     public function __construct(
         private readonly ResourceConnection $resourceConnection,
         private readonly DefaultCookieCatalog $defaultCatalog,
-        private readonly CookiePolicyVersionProviderInterface $policyVersionProvider
+        private readonly CookiePolicyVersionProviderInterface $policyVersionProvider,
+        private readonly TypeListInterface $cacheTypeList
     ) {
     }
 
@@ -148,6 +150,7 @@ class DefaultCookieCatalogManagement
             throw $exception;
         }
 
+        $this->invalidateFrontendCache();
         $policy = $this->policyVersionProvider->getOrPublishCurrent($storeId);
         return ['inserted' => $inserted, 'updated' => $updated, 'policy_version' => $policy['version']];
     }
@@ -181,5 +184,11 @@ class DefaultCookieCatalogManagement
     private function normalize(mixed $value): string
     {
         return $value === null ? '<null>' : trim((string)$value);
+    }
+
+    private function invalidateFrontendCache(): void
+    {
+        $this->cacheTypeList->cleanType('block_html');
+        $this->cacheTypeList->cleanType('full_page');
     }
 }

@@ -5,6 +5,7 @@ namespace Kkkonrad\Gdpr\Application\Cookie;
 
 use DomainException;
 use Kkkonrad\Gdpr\Domain\Cookie\CookiePatternMatcher;
+use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\ResourceConnection;
 use Throwable;
 
@@ -15,7 +16,8 @@ class CookieCatalogManagement
 
     public function __construct(
         private readonly ResourceConnection $resourceConnection,
-        private readonly CookiePatternMatcher $patternMatcher
+        private readonly CookiePatternMatcher $patternMatcher,
+        private readonly TypeListInterface $cacheTypeList
     ) {
     }
 
@@ -70,6 +72,7 @@ class CookieCatalogManagement
             throw $exception;
         }
 
+        $this->invalidateFrontendCache();
         return $groupId;
     }
 
@@ -127,6 +130,13 @@ class CookieCatalogManagement
             throw $exception;
         }
 
+        $this->invalidateFrontendCache();
         return $cookieId;
+    }
+
+    private function invalidateFrontendCache(): void
+    {
+        $this->cacheTypeList->cleanType('block_html');
+        $this->cacheTypeList->cleanType('full_page');
     }
 }

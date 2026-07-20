@@ -6,10 +6,11 @@ namespace Kkkonrad\Gdpr\Controller\Adminhtml\Cookie;
 use Kkkonrad\Gdpr\Application\Cookie\CookieCatalogManagement;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\App\ResourceConnection;
 use Throwable;
 
-class CreateFromRejected extends Action
+class CreateFromRejected extends Action implements HttpPostActionInterface
 {
     public const ADMIN_RESOURCE = 'Kkkonrad_Gdpr::cookies_manage';
 
@@ -34,14 +35,14 @@ class CreateFromRejected extends Action
                 throw new \DomainException('The rejected cookie diagnostic no longer exists.');
             }
             $cookieTable = $this->resourceConnection->getTableName('kkkonrad_gdpr_cookie');
-            $existingId = $this->resourceConnection->getConnection()->fetchOne(
+            $existing = $this->resourceConnection->getConnection()->fetchRow(
                 $this->resourceConnection->getConnection()->select()
                     ->from($cookieTable, ['cookie_id'])
                     ->where('storage_type = ?', 'cookie')
                     ->where('code_pattern = ?', (string)$row['cookie_name'])
                     ->limit(1)
             );
-            if ($existingId !== false) {
+            if (is_array($existing)) {
                 $this->messageManager->addSuccessMessage(
                     (string)__('An inactive cookie draft already exists for this diagnostic.')
                 );

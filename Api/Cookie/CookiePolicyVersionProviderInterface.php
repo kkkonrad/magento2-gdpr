@@ -6,7 +6,13 @@ namespace Kkkonrad\Gdpr\Api\Cookie;
 interface CookiePolicyVersionProviderInterface
 {
     /**
-     * @return array{policy_version_id:int, public_id:string, version:int, configuration_hash:string}
+     * @return array{
+     *     policy_version_id:int,
+     *     public_id:string,
+     *     version:int,
+     *     configuration_hash:string,
+     *     configuration_snapshot:string|null
+     * }
      */
     public function getOrPublishCurrent(int $storeId): array;
 }

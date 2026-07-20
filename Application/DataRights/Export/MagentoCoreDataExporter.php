@@ -96,13 +96,16 @@ class MagentoCoreDataExporter implements PersonalDataExporterInterface
                 ->where('COALESCE(event.customer_id, subject_link.customer_id) = ?', $customerId)
         );
         $cookieConsentColumns = [
-            'event_id', 'policy_public_id', 'policy_version', 'choices_json', 'region', 'store_id', 'occurred_at',
+            'event_id', 'policy_public_id', 'policy_version', 'policy_configuration_snapshot',
+            'choices_json', 'region', 'store_id', 'occurred_at',
         ];
         $cookieConsents = $connection->fetchAll(
             $connection->select()
                 ->from(['event' => $cookieEvent], ['event_id', 'choices_json', 'region', 'store_id', 'occurred_at'])
                 ->joinInner(['policy' => $cookiePolicy], 'policy.policy_version_id = event.policy_version_id', [
-                    'policy_public_id' => 'public_id', 'policy_version' => 'version',
+                    'policy_public_id' => 'public_id',
+                    'policy_version' => 'version',
+                    'policy_configuration_snapshot' => 'configuration_snapshot',
                 ])
                 ->where('event.customer_id = ?', $customerId)
         );

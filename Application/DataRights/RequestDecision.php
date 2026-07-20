@@ -118,44 +118,79 @@ class RequestDecision
         if (trim($adminReason) === '') {
             throw new DomainException('An administrative retry reason is required.');
         }
-        $request = $this->getRequest($requestId);
-        if (!in_array((string)$request['status'], [RequestStatus::FAILED, RequestStatus::PARTIALLY_COMPLETED], true)) {
-            throw new DomainException('Only a failed or partially completed request can be retried.');
-        }
+        $connection = $this->resourceConnection->getConnection();
+        $requestTable = $this->resourceConnection->getTableName('kkkonrad_gdpr_request');
         $jobTable = $this->resourceConnection->getTableName('kkkonrad_gdpr_job');
-        $featureCode = $this->resourceConnection->getConnection()->fetchOne(
-            $this->resourceConnection->getConnection()->select()
-                ->from($jobTable, ['feature_code'])
-                ->where('request_id = ?', $requestId)
-                ->order('job_id DESC')
-                ->limit(1)
-        );
-        if (!is_string($featureCode)
-            || !$this->featureManager->isEnabled($featureCode, (int)$request['store_id'])
-        ) {
-            throw new DomainException('The corresponding GDPR feature is disabled for this store view.');
+        $connection->beginTransaction();
+        try {
+            $request = $connection->fetchRow(
+                $connection->select()
+                    ->from($requestTable)
+                    ->where('request_id = ?', $requestId)
+                    ->forUpdate(true)
+            );
+            if ($request === false) {
+                throw NoSuchEntityException::singleField('request_id', $requestId);
+            }
+            if (!in_array(
+                (string)$request['status'],
+                [RequestStatus::FAILED, RequestStatus::PARTIALLY_COMPLETED],
+                true
+            )) {
+                throw new DomainException('Only a failed or partially completed request can be retried.');
+            }
+
+            $job = $connection->fetchRow(
+                $connection->select()
+                    ->from($jobTable, ['job_id', 'feature_code', 'status'])
+                    ->where('request_id = ?', $requestId)
+                    ->order('job_id DESC')
+                    ->limit(1)
+                    ->forUpdate(true)
+            );
+            if ($job === false || !in_array(
+                (string)$job['status'],
+                [JobStatus::FAILED, JobStatus::PARTIALLY_COMPLETED],
+                true
+            )) {
+                throw new DomainException('The related GDPR job is not retryable.');
+            }
+            if (!$this->featureManager->isEnabled(
+                (string)$job['feature_code'],
+                (int)$request['store_id']
+            )) {
+                throw new DomainException('The corresponding GDPR feature is disabled for this store view.');
+            }
+
+            $this->requestManagement->transition(
+                $requestId,
+                RequestStatus::QUEUED,
+                'admin',
+                $adminId,
+                (string)__('The request was queued for another processing attempt.'),
+                trim($adminReason),
+                ['decision' => 'retry']
+            );
+            $affected = $connection->update($jobTable, [
+                'status' => JobStatus::QUEUED,
+                'available_at' => gmdate('Y-m-d H:i:s'),
+                'locked_at' => null,
+                'locked_by' => null,
+                'error_code' => null,
+                'error_message' => null,
+                'finished_at' => null,
+            ], [
+                'job_id = ?' => (int)$job['job_id'],
+                'status IN (?)' => [JobStatus::FAILED, JobStatus::PARTIALLY_COMPLETED],
+            ]);
+            if ($affected !== 1) {
+                throw new DomainException('The related GDPR job could not be queued for retry.');
+            }
+            $connection->commit();
+        } catch (Throwable $exception) {
+            $connection->rollBack();
+            throw $exception;
         }
-        $this->requestManagement->transition(
-            $requestId,
-            RequestStatus::QUEUED,
-            'admin',
-            $adminId,
-            (string)__('The request was queued for another processing attempt.'),
-            trim($adminReason),
-            ['decision' => 'retry']
-        );
-        $this->resourceConnection->getConnection()->update($jobTable, [
-            'status' => 'queued',
-            'available_at' => gmdate('Y-m-d H:i:s'),
-            'locked_at' => null,
-            'locked_by' => null,
-            'error_code' => null,
-            'error_message' => null,
-            'finished_at' => null,
-        ], [
-            'request_id = ?' => $requestId,
-            'status IN (?)' => [JobStatus::FAILED, JobStatus::PARTIALLY_COMPLETED],
-        ]);
     }
 
     /** @return array<string, mixed> */

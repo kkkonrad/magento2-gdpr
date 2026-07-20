@@ -5,6 +5,7 @@ namespace Kkkonrad\Gdpr\Application;
 
 use Kkkonrad\Gdpr\Api\ConfigProviderInterface;
 use Kkkonrad\Gdpr\Domain\Shared\Job\JobContext;
+use Kkkonrad\Gdpr\Domain\Shared\Job\JobLeaseLostException;
 use Kkkonrad\Gdpr\Domain\Shared\Job\JobProcessorPool;
 use Kkkonrad\Gdpr\Domain\Shared\Job\PartialProcessingException;
 use Kkkonrad\Gdpr\Infrastructure\Persistence\JobQueue;
@@ -66,26 +67,38 @@ class JobRunner
                 ? 'kkkonrad_gdpr_customer_' . hash('sha256', (string)$customerId)
                 : null;
             if ($subjectLock !== null && !$this->lockManager->lock($subjectLock, 0)) {
-                $this->jobQueue->retryLater(
-                    $context->jobId,
-                    30,
-                    'subject_lock_busy',
-                    __('Another privacy operation for this account is still running.')->render()
-                );
+                try {
+                    $this->jobQueue->retryLater(
+                        $context->jobId,
+                        $workerId,
+                        30,
+                        'subject_lock_busy',
+                        __('Another privacy operation for this account is still running.')->render()
+                    );
+                } catch (JobLeaseLostException) {
+                    $this->logLeaseLoss($context, $workerId);
+                }
                 $retried++;
                 continue;
             }
             try {
-                $this->jobQueue->markProcessing($context->jobId);
+                $this->jobQueue->markProcessing($context->jobId, $workerId);
                 $this->processorPool->get($context->type)->process($context);
-                $this->jobQueue->complete($context->jobId);
+                $this->jobQueue->complete($context->jobId, $workerId);
                 $processed++;
             } catch (PartialProcessingException $exception) {
-                $this->jobQueue->partiallyComplete(
-                    $context->jobId,
-                    'processing_partially_completed',
-                    __('Processing was partially completed and requires review.')->render()
-                );
+                try {
+                    $this->jobQueue->partiallyComplete(
+                        $context->jobId,
+                        $workerId,
+                        'processing_partially_completed',
+                        __('Processing was partially completed and requires review.')->render()
+                    );
+                } catch (JobLeaseLostException) {
+                    $this->logLeaseLoss($context, $workerId);
+                    $retried++;
+                    continue;
+                }
                 $this->logger->error('GDPR job was partially completed.', [
                     'job_id' => $context->jobId,
                     'job_type' => $context->type,
@@ -99,46 +112,56 @@ class JobRunner
                     'processing_partially_completed'
                 );
                 $failed++;
+            } catch (JobLeaseLostException) {
+                $this->logLeaseLoss($context, $workerId);
+                $retried++;
             } catch (Throwable $exception) {
                 $attempt = max(1, (int)($row['attempt_count'] ?? 1));
                 // Request processors persist a terminal/partial request state themselves and therefore
                 // require the audited manual retry path. Autonomous retention jobs can be retried safely.
-                if ($context->requestId === null && $attempt < $maxAttempts) {
-                    $delay = min(3600, $retryBaseDelay * (2 ** ($attempt - 1)));
-                    $this->jobQueue->retryLater(
-                        $context->jobId,
-                        $delay,
-                        'processing_retry_scheduled',
-                        __('Processing will be retried automatically.')->render()
-                    );
-                    $this->logger->warning('GDPR job retry was scheduled.', [
-                        'job_id' => $context->jobId,
-                        'job_type' => $context->type,
-                        'attempt' => $attempt,
-                        'next_delay_seconds' => $delay,
-                        'exception_class' => $exception::class,
-                    ]);
+                try {
+                    if ($context->requestId === null && $attempt < $maxAttempts) {
+                        $delay = min(3600, $retryBaseDelay * (2 ** ($attempt - 1)));
+                        $this->jobQueue->retryLater(
+                            $context->jobId,
+                            $workerId,
+                            $delay,
+                            'processing_retry_scheduled',
+                            __('Processing will be retried automatically.')->render()
+                        );
+                        $this->logger->warning('GDPR job retry was scheduled.', [
+                            'job_id' => $context->jobId,
+                            'job_type' => $context->type,
+                            'attempt' => $attempt,
+                            'next_delay_seconds' => $delay,
+                            'exception_class' => $exception::class,
+                        ]);
+                        $retried++;
+                    } else {
+                        $this->jobQueue->fail(
+                            $context->jobId,
+                            $workerId,
+                            'processing_failed',
+                            __('Processing failed after the configured retry limit.')->render()
+                        );
+                        $this->logger->error('GDPR job processing failed permanently.', [
+                            'job_id' => $context->jobId,
+                            'job_type' => $context->type,
+                            'attempt' => $attempt,
+                            'exception_class' => $exception::class,
+                        ]);
+                        $this->notifyAutomationFailure(
+                            $context->jobId,
+                            $context->requestId,
+                            $context->type,
+                            $context->storeId,
+                            'processing_failed'
+                        );
+                        $failed++;
+                    }
+                } catch (JobLeaseLostException) {
+                    $this->logLeaseLoss($context, $workerId);
                     $retried++;
-                } else {
-                    $this->jobQueue->fail(
-                        $context->jobId,
-                        'processing_failed',
-                        __('Processing failed after the configured retry limit.')->render()
-                    );
-                    $this->logger->error('GDPR job processing failed permanently.', [
-                        'job_id' => $context->jobId,
-                        'job_type' => $context->type,
-                        'attempt' => $attempt,
-                        'exception_class' => $exception::class,
-                    ]);
-                    $this->notifyAutomationFailure(
-                        $context->jobId,
-                        $context->requestId,
-                        $context->type,
-                        $context->storeId,
-                        'processing_failed'
-                    );
-                    $failed++;
                 }
             } finally {
                 if ($subjectLock !== null) {
@@ -153,6 +176,15 @@ class JobRunner
             'retried' => $retried,
             'stopped_by_budget' => $stoppedByBudget,
         ];
+    }
+
+    private function logLeaseLoss(JobContext $context, string $workerId): void
+    {
+        $this->logger->warning('A GDPR worker stopped because its job lease was lost.', [
+            'job_id' => $context->jobId,
+            'job_type' => $context->type,
+            'worker_id' => $workerId,
+        ]);
     }
 
     private function notifyAutomationFailure(

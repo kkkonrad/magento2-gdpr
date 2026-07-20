@@ -6,6 +6,7 @@ namespace Kkkonrad\Gdpr\Application\DataRights\Erasure;
 use Kkkonrad\Gdpr\Api\DataRights\PersonalDataEraserInterface;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Framework\App\ResourceConnection;
+use Magento\Framework\Exception\NoSuchEntityException;
 
 class MagentoCoreDataEraser implements PersonalDataEraserInterface
 {
@@ -52,8 +53,12 @@ class MagentoCoreDataEraser implements PersonalDataEraserInterface
                 'nickname' => 'Anonymous',
             ], ['customer_id = ?' => $customerId])
             : 0;
-        $this->secureAreaExecutor->execute(fn (): bool => $this->customerRepository->deleteById($customerId));
-        $counts['customer_deleted'] = 1;
+        try {
+            $this->secureAreaExecutor->execute(fn (): bool => $this->customerRepository->deleteById($customerId));
+            $counts['customer_deleted'] = 1;
+        } catch (NoSuchEntityException) {
+            $counts['customer_deleted'] = 0;
+        }
         return $counts;
     }
 }

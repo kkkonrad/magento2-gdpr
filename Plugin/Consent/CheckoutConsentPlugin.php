@@ -29,13 +29,12 @@ class CheckoutConsentPlugin
             ConsentLocation::CHECKOUT,
             $this->extract($paymentMethod)
         );
-        $orderId = (int)$proceed($cartId, $paymentMethod, $billingAddress);
         $customerId = $this->customerSession->isLoggedIn()
             ? (int)$this->customerSession->getCustomerId()
             : null;
         $this->formConsentHandler->record(ConsentLocation::CHECKOUT, $customerId);
 
-        return $orderId;
+        return (int)$proceed($cartId, $paymentMethod, $billingAddress);
     }
 
     /** @return array<int|string, mixed> */

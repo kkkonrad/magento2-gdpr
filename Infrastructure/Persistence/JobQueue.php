@@ -10,6 +10,7 @@ use Kkkonrad\Gdpr\Api\JobSchedulerInterface;
 use Kkkonrad\Gdpr\Api\RandomIdGeneratorInterface;
 use Kkkonrad\Gdpr\Domain\Shared\Audit\SensitiveDataRedactor;
 use Kkkonrad\Gdpr\Domain\Shared\Feature\FeatureCode;
+use Kkkonrad\Gdpr\Domain\Shared\Job\JobLeaseLostException;
 use Kkkonrad\Gdpr\Domain\Shared\Job\JobStatus;
 use Magento\Framework\App\ResourceConnection;
 use Zend_Db_Expr;
@@ -136,26 +137,32 @@ class JobQueue implements JobSchedulerInterface
         return null;
     }
 
-    public function markProcessing(int $jobId): void
+    public function markProcessing(int $jobId, string $workerId): void
     {
-        $this->updateStatus($jobId, JobStatus::PROCESSING, [
+        $this->updateOwnedStatus($jobId, $workerId, [JobStatus::CLAIMED], JobStatus::PROCESSING, [
             'error_code' => null,
             'error_message' => null,
+            'locked_at' => $this->clock->now()->format('Y-m-d H:i:s'),
         ]);
     }
 
-    public function complete(int $jobId): void
+    public function complete(int $jobId, string $workerId): void
     {
-        $this->updateStatus($jobId, JobStatus::COMPLETED, [
+        $this->updateOwnedStatus($jobId, $workerId, [JobStatus::PROCESSING], JobStatus::COMPLETED, [
             'locked_at' => null,
             'locked_by' => null,
             'finished_at' => $this->clock->now()->format('Y-m-d H:i:s'),
         ]);
     }
 
-    public function partiallyComplete(int $jobId, string $errorCode, string $safeMessage): void
+    public function partiallyComplete(
+        int $jobId,
+        string $workerId,
+        string $errorCode,
+        string $safeMessage
+    ): void
     {
-        $this->updateStatus($jobId, JobStatus::PARTIALLY_COMPLETED, [
+        $this->updateOwnedStatus($jobId, $workerId, [JobStatus::PROCESSING], JobStatus::PARTIALLY_COMPLETED, [
             'locked_at' => null,
             'locked_by' => null,
             'error_code' => mb_substr($errorCode, 0, 64),
@@ -164,9 +171,9 @@ class JobQueue implements JobSchedulerInterface
         ]);
     }
 
-    public function fail(int $jobId, string $errorCode, string $safeMessage): void
+    public function fail(int $jobId, string $workerId, string $errorCode, string $safeMessage): void
     {
-        $this->updateStatus($jobId, JobStatus::FAILED, [
+        $this->updateOwnedStatus($jobId, $workerId, [JobStatus::PROCESSING], JobStatus::FAILED, [
             'locked_at' => null,
             'locked_by' => null,
             'error_code' => mb_substr($errorCode, 0, 64),
@@ -175,18 +182,30 @@ class JobQueue implements JobSchedulerInterface
         ]);
     }
 
-    public function retryLater(int $jobId, int $delaySeconds, string $errorCode, string $safeMessage): void
+    public function retryLater(
+        int $jobId,
+        string $workerId,
+        int $delaySeconds,
+        string $errorCode,
+        string $safeMessage
+    ): void
     {
-        $this->updateStatus($jobId, JobStatus::QUEUED, [
-            'locked_at' => null,
-            'locked_by' => null,
-            'available_at' => $this->clock->now()
-                ->modify('+' . max(1, min(3600, $delaySeconds)) . ' seconds')
-                ->format('Y-m-d H:i:s'),
-            'error_code' => mb_substr($errorCode, 0, 64),
-            'error_message' => mb_substr($safeMessage, 0, 2000),
-            'finished_at' => null,
-        ]);
+        $this->updateOwnedStatus(
+            $jobId,
+            $workerId,
+            [JobStatus::CLAIMED, JobStatus::PROCESSING],
+            JobStatus::QUEUED,
+            [
+                'locked_at' => null,
+                'locked_by' => null,
+                'available_at' => $this->clock->now()
+                    ->modify('+' . max(1, min(3600, $delaySeconds)) . ' seconds')
+                    ->format('Y-m-d H:i:s'),
+                'error_code' => mb_substr($errorCode, 0, 64),
+                'error_message' => mb_substr($safeMessage, 0, 2000),
+                'finished_at' => null,
+            ]
+        );
     }
 
     public function releaseStaleClaims(int $ageSeconds = 900): int
@@ -199,7 +218,7 @@ class JobQueue implements JobSchedulerInterface
             'locked_by' => null,
             'available_at' => $this->clock->now()->format('Y-m-d H:i:s'),
         ], [
-            'status = ?' => JobStatus::CLAIMED,
+            'status IN (?)' => [JobStatus::CLAIMED, JobStatus::PROCESSING],
             'locked_at < ?' => $threshold,
         ]);
     }
@@ -222,14 +241,32 @@ class JobQueue implements JobSchedulerInterface
         return (int)$connection->fetchOne($select);
     }
 
-    /** @param array<string, mixed> $additionalData */
-    private function updateStatus(int $jobId, string $status, array $additionalData): void
-    {
+    /**
+     * @param string[] $allowedStatuses
+     * @param array<string, mixed> $additionalData
+     */
+    private function updateOwnedStatus(
+        int $jobId,
+        string $workerId,
+        array $allowedStatuses,
+        string $status,
+        array $additionalData
+    ): void {
         $table = $this->resourceConnection->getTableName('kkkonrad_gdpr_job');
-        $this->resourceConnection->getConnection()->update(
+        $affected = $this->resourceConnection->getConnection()->update(
             $table,
             array_merge(['status' => $status], $additionalData),
-            ['job_id = ?' => $jobId]
+            [
+                'job_id = ?' => $jobId,
+                'status IN (?)' => $allowedStatuses,
+                'locked_by = ?' => $workerId,
+            ]
         );
+        if ($affected !== 1) {
+            throw new JobLeaseLostException(sprintf(
+                'The lease for GDPR job %d is no longer owned by this worker.',
+                $jobId
+            ));
+        }
     }
 }

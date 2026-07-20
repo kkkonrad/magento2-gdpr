@@ -6,10 +6,11 @@ namespace Kkkonrad\Gdpr\Controller\Adminhtml\Consent;
 use Kkkonrad\Gdpr\Api\Consent\ConsentDefinitionManagementInterface;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\App\ResourceConnection;
 use Throwable;
 
-class Archive extends Action
+class Archive extends Action implements HttpPostActionInterface
 {
     public const ADMIN_RESOURCE = 'Kkkonrad_Gdpr::consents_manage';
 

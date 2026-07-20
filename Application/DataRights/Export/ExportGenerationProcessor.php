@@ -50,13 +50,11 @@ class ExportGenerationProcessor implements JobProcessorInterface
         if ($customerId <= 0 || $context->requestId === null) {
             throw new DomainException('Export job has no customer or request reference.');
         }
-        $this->requestManagement->transition(
-            $context->requestId,
-            RequestStatus::PROCESSING,
-            'system',
-            null,
-            (string)__('Your data export is being generated.')
-        );
+        $requestStatus = $this->beginOrResumeRequest($context->requestId);
+        if ($requestStatus === RequestStatus::COMPLETED) {
+            $this->notify($context->requestId, 'completed');
+            return;
+        }
 
         $zipPath = null;
         try {
@@ -175,6 +173,34 @@ class ExportGenerationProcessor implements JobProcessorInterface
                 'error_code' => 'notification_prepare_failed',
             ]);
         }
+    }
+
+    private function beginOrResumeRequest(int $requestId): string
+    {
+        $requestTable = $this->resourceConnection->getTableName('kkkonrad_gdpr_request');
+        $status = $this->resourceConnection->getConnection()->fetchOne(
+            $this->resourceConnection->getConnection()->select()
+                ->from($requestTable, ['status'])
+                ->where('request_id = ?', $requestId)
+        );
+        if (!is_string($status)) {
+            throw new DomainException('The export request no longer exists.');
+        }
+        if ($status === RequestStatus::QUEUED) {
+            $this->requestManagement->transition(
+                $requestId,
+                RequestStatus::PROCESSING,
+                'system',
+                null,
+                (string)__('Your data export is being generated.')
+            );
+            return RequestStatus::PROCESSING;
+        }
+        if (!in_array($status, [RequestStatus::PROCESSING, RequestStatus::COMPLETED], true)) {
+            throw new DomainException(sprintf('The export request cannot resume from status "%s".', $status));
+        }
+
+        return $status;
     }
 
     /**

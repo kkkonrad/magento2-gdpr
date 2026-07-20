@@ -16,6 +16,7 @@ use Kkkonrad\Gdpr\Domain\Shared\Job\JobProcessorInterface;
 use Kkkonrad\Gdpr\Domain\Shared\Job\PartialProcessingException;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Framework\App\ResourceConnection;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Throwable;
 use Psr\Log\LoggerInterface;
 use Kkkonrad\Gdpr\Application\DataRights\Retention\AbandonedAccountActivityPolicy;
@@ -49,28 +50,24 @@ class ErasureProcessor implements JobProcessorInterface
         if ($customerId <= 0 || $context->requestId === null) {
             throw new DomainException('Erasure job has no customer or request reference.');
         }
-        $this->requestManagement->transition($context->requestId, RequestStatus::PROCESSING, 'system');
+        $requestStatus = $this->beginOrResumeRequest($context->requestId);
+        if ($requestStatus === RequestStatus::COMPLETED) {
+            $this->sendCompletionNotification($context->requestId);
+            return;
+        }
         $completedCodes = $this->getCompletedProcessorCodes($context->jobId);
         $hasCompleted = $completedCodes !== [];
+        $customerErasureCompleted = in_array('erase.magento_core', $completedCodes, true);
         $currentCode = null;
         try {
-            $this->assertRetentionInactivity($context, $customerId);
-            $eligibility = $this->eligibilityPolicy->evaluate($customerId, RequestType::ERASE, $context->storeId);
-            if (!$eligibility['eligible']) {
-                throw new DomainException($eligibility['message']);
+            if (!$customerErasureCompleted) {
+                $this->assertRetentionInactivity($context, $customerId);
+                $eligibility = $this->eligibilityPolicy->evaluate($customerId, RequestType::ERASE, $context->storeId);
+                if (!$eligibility['eligible']) {
+                    throw new DomainException($eligibility['message']);
+                }
+                $this->prepareNotifications($context, $customerId);
             }
-            $customer = $this->customerRepository->getById($customerId);
-            $this->notificationOutbox->prepare(
-                $context->requestId,
-                'erasure.completed',
-                (string)$customer->getEmail(),
-                trim((string)$customer->getFirstname() . ' ' . (string)$customer->getLastname()),
-                'kkkonrad_gdpr_erasure_completed',
-                $context->storeId,
-                ['request_id' => $context->publicId],
-                true
-            );
-            $this->requestNotification->prepare($context->requestId, 'failed', true);
             foreach ($this->anonymizerPool->all() as $anonymizer) {
                 $currentCode = 'anonymize.' . $anonymizer->getCode();
                 if (in_array($currentCode, $completedCodes, true)) {
@@ -134,11 +131,61 @@ class ErasureProcessor implements JobProcessorInterface
             throw $exception;
         }
 
+        $this->sendCompletionNotification($context->requestId);
+    }
+
+    private function prepareNotifications(JobContext $context, int $customerId): void
+    {
         try {
-            $this->notificationOutbox->sendForRequest($context->requestId, 'erasure.completed');
-        } catch (Throwable $notificationException) {
-            $this->logger->warning('GDPR erasure completed but final notification was queued for retry.', [
+            $customer = $this->customerRepository->getById($customerId);
+            $this->notificationOutbox->prepare(
+                $context->requestId,
+                'erasure.completed',
+                (string)$customer->getEmail(),
+                trim((string)$customer->getFirstname() . ' ' . (string)$customer->getLastname()),
+                'kkkonrad_gdpr_erasure_completed',
+                $context->storeId,
+                ['request_id' => $context->publicId],
+                true
+            );
+        } catch (NoSuchEntityException) {
+            $this->logger->info('The customer was already deleted before the GDPR erasure job resumed.', [
                 'request_id' => $context->requestId,
+                'customer_id' => $customerId,
+            ]);
+        }
+        $this->requestNotification->prepare($context->requestId, 'failed', true);
+    }
+
+    private function beginOrResumeRequest(int $requestId): string
+    {
+        $requestTable = $this->resourceConnection->getTableName('kkkonrad_gdpr_request');
+        $status = $this->resourceConnection->getConnection()->fetchOne(
+            $this->resourceConnection->getConnection()->select()
+                ->from($requestTable, ['status'])
+                ->where('request_id = ?', $requestId)
+        );
+        if (!is_string($status)) {
+            throw new DomainException('The erasure request no longer exists.');
+        }
+        if ($status === RequestStatus::QUEUED) {
+            $this->requestManagement->transition($requestId, RequestStatus::PROCESSING, 'system');
+            return RequestStatus::PROCESSING;
+        }
+        if (!in_array($status, [RequestStatus::PROCESSING, RequestStatus::COMPLETED], true)) {
+            throw new DomainException(sprintf('The erasure request cannot resume from status "%s".', $status));
+        }
+
+        return $status;
+    }
+
+    private function sendCompletionNotification(int $requestId): void
+    {
+        try {
+            $this->notificationOutbox->sendForRequest($requestId, 'erasure.completed');
+        } catch (Throwable) {
+            $this->logger->warning('GDPR erasure completed but final notification was queued for retry.', [
+                'request_id' => $requestId,
                 'error_code' => 'notification_failed',
             ]);
         }

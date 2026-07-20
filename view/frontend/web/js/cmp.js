@@ -18,21 +18,6 @@
         return readCookie('form_key') || '';
     }
 
-    function readUnsignedPayload(token) {
-        if (!token || token.indexOf('.') < 0) {
-            return null;
-        }
-        try {
-            var encoded = token.split('.')[0].replace(/-/g, '+').replace(/_/g, '/');
-            while (encoded.length % 4) {
-                encoded += '=';
-            }
-            return JSON.parse(decodeURIComponent(escape(window.atob(encoded))));
-        } catch (error) {
-            return null;
-        }
-    }
-
     function createElement(tag, attributes, text) {
         var element = document.createElement(tag);
         Object.keys(attributes || {}).forEach(function (name) {
@@ -61,15 +46,11 @@
         var modalTitle = root.querySelector('[data-role="modal-title"]');
         var restoreFocusTo = null;
         var saving = false;
-        var savedPayload = readUnsignedPayload(readCookie(COOKIE_NAME));
-        var hasCurrentDecision = savedPayload
-            && savedPayload.policy === config.policy
-            && savedPayload.expires_at > Math.floor(Date.now() / 1000);
+        var savedPayload = null;
+        var hasCurrentDecision = false;
 
         (config.groups || []).forEach(function (group) {
-            choices[group.code] = group.is_required
-                ? true
-                : Boolean(hasCurrentDecision && savedPayload.choices[group.code]);
+            choices[group.code] = Boolean(group.is_required);
         });
 
         root.querySelector('[data-role="banner-text"]').textContent = config.text.banner;
@@ -419,33 +400,73 @@
             });
         }
 
-        banner.hidden = true;
-        root.hidden = false;
-        if (config.regionMode === 'selected' && !hasCurrentDecision && config.showBanner) {
-            window.fetch(config.regionEndpoint, {
-                method: 'GET',
-                credentials: 'same-origin',
-                headers: {'Accept': 'application/json'}
-            }).then(function (response) {
-                if (!response.ok) {
-                    throw new Error('region_failed');
-                }
-                return response.json();
-            }).then(function (resolved) {
-                setBannerVisibility(matchesConfiguredRegion(resolved.region));
-            }).catch(function () {
-                setBannerVisibility(true);
-            });
-        } else {
-            setBannerVisibility(true);
-        }
         window.kkkonradConsent = {
             has: function (group) { return Boolean(choices[group]); },
             open: openDialog
         };
-        if (hasCurrentDecision) {
-            applyDecision();
+
+        function completeInitialization(decision) {
+            if (root.dataset.kkkonradGdprInitialized === '1') {
+                return;
+            }
+            root.dataset.kkkonradGdprInitialized = '1';
+            savedPayload = decision;
+            hasCurrentDecision = savedPayload
+                && savedPayload.policy === config.policy
+                && savedPayload.expires_at > Math.floor(Date.now() / 1000)
+                && savedPayload.choices
+                && typeof savedPayload.choices === 'object';
+            (config.groups || []).forEach(function (group) {
+                choices[group.code] = group.is_required
+                    ? true
+                    : Boolean(hasCurrentDecision && savedPayload.choices[group.code]);
+            });
+
+            banner.hidden = true;
+            root.hidden = false;
+            if (config.regionMode === 'selected' && !hasCurrentDecision && config.showBanner) {
+                window.fetch(config.regionEndpoint, {
+                    method: 'GET',
+                    credentials: 'same-origin',
+                    headers: {'Accept': 'application/json'}
+                }).then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('region_failed');
+                    }
+                    return response.json();
+                }).then(function (resolved) {
+                    setBannerVisibility(matchesConfiguredRegion(resolved.region));
+                }).catch(function () {
+                    setBannerVisibility(true);
+                });
+            } else {
+                setBannerVisibility(true);
+            }
+            if (hasCurrentDecision) {
+                applyDecision();
+            }
         }
+
+        var stateTimeout = window.setTimeout(function () {
+            completeInitialization(null);
+        }, 3000);
+        window.fetch(config.stateEndpoint, {
+            method: 'GET',
+            credentials: 'same-origin',
+            cache: 'no-store',
+            headers: {'Accept': 'application/json'}
+        }).then(function (response) {
+            if (!response.ok) {
+                throw new Error('state_failed');
+            }
+            return response.json();
+        }).then(function (response) {
+            window.clearTimeout(stateTimeout);
+            completeInitialization(response.decision || null);
+        }).catch(function () {
+            window.clearTimeout(stateTimeout);
+            completeInitialization(null);
+        });
     }
 
     function boot() {

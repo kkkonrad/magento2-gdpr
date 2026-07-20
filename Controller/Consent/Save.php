@@ -7,6 +7,7 @@ use DomainException;
 use Kkkonrad\Gdpr\Api\Cookie\CookieDecisionRecorderInterface;
 use Kkkonrad\Gdpr\Domain\Cookie\DecisionToken;
 use Kkkonrad\Gdpr\Api\Geo\RegionResolverInterface;
+use Kkkonrad\Gdpr\Application\Cookie\CookieDecisionStateProvider;
 use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\App\CsrfAwareActionInterface;
@@ -23,8 +24,6 @@ use Throwable;
 
 class Save implements HttpPostActionInterface, CsrfAwareActionInterface
 {
-    public const COOKIE_NAME = 'kkkonrad_gdpr_consent';
-
     public function __construct(
         private readonly Http $request,
         private readonly JsonFactory $jsonFactory,
@@ -74,7 +73,11 @@ class Save implements HttpPostActionInterface, CsrfAwareActionInterface
                 ->setHttpOnly(false)
                 ->setSecure($this->request->isSecure())
                 ->setSameSite('Lax');
-            $this->cookieManager->setPublicCookie(self::COOKIE_NAME, $record['token'], $metadata);
+            $this->cookieManager->setPublicCookie(
+                CookieDecisionStateProvider::COOKIE_NAME,
+                $record['token'],
+                $metadata
+            );
 
             return $result->setData([
                 'success' => true,
@@ -95,7 +98,7 @@ class Save implements HttpPostActionInterface, CsrfAwareActionInterface
 
     private function resolveSubjectKey(): ?string
     {
-        $token = $this->cookieManager->getCookie(self::COOKIE_NAME);
+        $token = $this->cookieManager->getCookie(CookieDecisionStateProvider::COOKIE_NAME);
         if ($token === null) {
             return null;
         }

@@ -27,10 +27,9 @@ class GuestCheckoutConsentPlugin
             ConsentLocation::CHECKOUT,
             $this->extract($paymentMethod)
         );
-        $orderId = (int)$proceed($cartId, $email, $paymentMethod, $billingAddress);
         $this->formConsentHandler->record(ConsentLocation::CHECKOUT);
 
-        return $orderId;
+        return (int)$proceed($cartId, $email, $paymentMethod, $billingAddress);
     }
 
     /** @return array<int|string, mixed> */
